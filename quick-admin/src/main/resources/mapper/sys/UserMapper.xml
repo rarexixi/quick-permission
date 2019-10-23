@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 默认生成的的sql，不要修改！！！ -->
+<mapper namespace="org.xi.quick.sys.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="org.xi.quick.sys.models.entity.UserEntity">
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="salt" column="salt"/>
+        <result property="email" column="email"/>
+        <result property="mobile" column="mobile"/>
+        <result property="realName" column="real_name"/>
+        <result property="avatar" column="avatar"/>
+        <result property="deleted" column="deleted"/>
+        <result property="createUser" column="create_user"/>
+        <result property="updateUser" column="update_user"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <parameterMap id="BaseParameterMap" type="org.xi.quick.sys.models.entity.UserEntity"></parameterMap>
+    <parameterMap id="BaseConditionMap" type="org.xi.quick.sys.models.condition.UserCondition"></parameterMap>
+
+    <sql id="tableName">`sys_user`</sql>
+    <sql id="selectCondition">
+        <trim prefixOverrides="AND|OR">
+                <if test="condition.userId != null">
+                    AND `user_id` = #{condition.userId}
+                </if>
+                <if test="condition.userIdList != null and condition.userIdList.size() > 0">
+                    AND `user_id` in
+                    <foreach collection="condition.userIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.userIdMin != null">
+                    <![CDATA[
+                    AND `user_id` >= #{condition.userIdMin}
+                    ]]>
+                </if>
+                <if test="condition.userIdMax != null">
+                    <![CDATA[
+                    AND `user_id` <= #{condition.userIdMax}
+                    ]]>
+                </if>
+                <if test="condition.username != null and condition.username != ''">
+                    AND `username` = #{condition.username}
+                </if>
+                <if test="condition.usernameList != null and condition.usernameList.size() > 0">
+                    AND `username` in
+                    <foreach collection="condition.usernameList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.usernameIsEmpty != null and condition.usernameIsEmpty == true">
+                    AND `username` = ''
+                </if>
+                <if test="condition.usernameStartWith != null and condition.usernameStartWith != ''">
+                    AND `username` LIKE concat(#{condition.usernameStartWith}, '%')
+                </if>
+                <if test="condition.usernameContains != null and condition.usernameContains != ''">
+                    AND `username` LIKE concat('%', #{condition.usernameContains}, '%')
+                </if>
+                <if test="condition.password != null and condition.password != ''">
+                    AND `password` = #{condition.password}
+                </if>
+                <if test="condition.passwordList != null and condition.passwordList.size() > 0">
+                    AND `password` in
+                    <foreach collection="condition.passwordList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.passwordIsEmpty != null and condition.passwordIsEmpty == true">
+                    AND `password` = ''
+                </if>
+                <if test="condition.passwordStartWith != null and condition.passwordStartWith != ''">
+                    AND `password` LIKE concat(#{condition.passwordStartWith}, '%')
+                </if>
+                <if test="condition.passwordContains != null and condition.passwordContains != ''">
+                    AND `password` LIKE concat('%', #{condition.passwordContains}, '%')
+                </if>
+                <if test="condition.salt != null and condition.salt != ''">
+                    AND `salt` = #{condition.salt}
+                </if>
+                <if test="condition.saltList != null and condition.saltList.size() > 0">
+                    AND `salt` in
+                    <foreach collection="condition.saltList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.saltIsEmpty != null and condition.saltIsEmpty == true">
+                    AND `salt` = ''
+                </if>
+                <if test="condition.saltStartWith != null and condition.saltStartWith != ''">
+                    AND `salt` LIKE concat(#{condition.saltStartWith}, '%')
+                </if>
+                <if test="condition.saltContains != null and condition.saltContains != ''">
+                    AND `salt` LIKE concat('%', #{condition.saltContains}, '%')
+                </if>
+                <if test="condition.email != null and condition.email != ''">
+                    AND `email` = #{condition.email}
+                </if>
+                <if test="condition.emailList != null and condition.emailList.size() > 0">
+                    AND `email` in
+                    <foreach collection="condition.emailList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.emailIsEmpty != null and condition.emailIsEmpty == true">
+                    AND `email` = ''
+                </if>
+                <if test="condition.emailStartWith != null and condition.emailStartWith != ''">
+                    AND `email` LIKE concat(#{condition.emailStartWith}, '%')
+                </if>
+                <if test="condition.emailContains != null and condition.emailContains != ''">
+                    AND `email` LIKE concat('%', #{condition.emailContains}, '%')
+                </if>
+                <if test="condition.mobile != null and condition.mobile != ''">
+                    AND `mobile` = #{condition.mobile}
+                </if>
+                <if test="condition.mobileList != null and condition.mobileList.size() > 0">
+                    AND `mobile` in
+                    <foreach collection="condition.mobileList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.mobileIsEmpty != null and condition.mobileIsEmpty == true">
+                    AND `mobile` = ''
+                </if>
+                <if test="condition.mobileStartWith != null and condition.mobileStartWith != ''">
+                    AND `mobile` LIKE concat(#{condition.mobileStartWith}, '%')
+                </if>
+                <if test="condition.mobileContains != null and condition.mobileContains != ''">
+                    AND `mobile` LIKE concat('%', #{condition.mobileContains}, '%')
+                </if>
+                <if test="condition.realName != null and condition.realName != ''">
+                    AND `real_name` = #{condition.realName}
+                </if>
+                <if test="condition.realNameList != null and condition.realNameList.size() > 0">
+                    AND `real_name` in
+                    <foreach collection="condition.realNameList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.realNameIsEmpty != null and condition.realNameIsEmpty == true">
+                    AND `real_name` = ''
+                </if>
+                <if test="condition.realNameStartWith != null and condition.realNameStartWith != ''">
+                    AND `real_name` LIKE concat(#{condition.realNameStartWith}, '%')
+                </if>
+                <if test="condition.realNameContains != null and condition.realNameContains != ''">
+                    AND `real_name` LIKE concat('%', #{condition.realNameContains}, '%')
+                </if>
+                <if test="condition.avatar != null and condition.avatar != ''">
+                    AND `avatar` = #{condition.avatar}
+                </if>
+                <if test="condition.avatarList != null and condition.avatarList.size() > 0">
+                    AND `avatar` in
+                    <foreach collection="condition.avatarList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.avatarIsEmpty != null and condition.avatarIsEmpty == true">
+                    AND `avatar` = ''
+                </if>
+                <if test="condition.avatarStartWith != null and condition.avatarStartWith != ''">
+                    AND `avatar` LIKE concat(#{condition.avatarStartWith}, '%')
+                </if>
+                <if test="condition.avatarContains != null and condition.avatarContains != ''">
+                    AND `avatar` LIKE concat('%', #{condition.avatarContains}, '%')
+                </if>
+                <if test="condition.deleted != null">
+                    AND `deleted` = #{condition.deleted}
+                </if>
+                <if test="condition.createUser != null">
+                    AND `create_user` = #{condition.createUser}
+                </if>
+                <if test="condition.createUserList != null and condition.createUserList.size() > 0">
+                    AND `create_user` in
+                    <foreach collection="condition.createUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.createUserMin != null">
+                    <![CDATA[
+                    AND `create_user` >= #{condition.createUserMin}
+                    ]]>
+                </if>
+                <if test="condition.createUserMax != null">
+                    <![CDATA[
+                    AND `create_user` <= #{condition.createUserMax}
+                    ]]>
+                </if>
+                <if test="condition.updateUser != null">
+                    AND `update_user` = #{condition.updateUser}
+                </if>
+                <if test="condition.updateUserList != null and condition.updateUserList.size() > 0">
+                    AND `update_user` in
+                    <foreach collection="condition.updateUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.updateUserMin != null">
+                    <![CDATA[
+                    AND `update_user` >= #{condition.updateUserMin}
+                    ]]>
+                </if>
+                <if test="condition.updateUserMax != null">
+                    <![CDATA[
+                    AND `update_user` <= #{condition.updateUserMax}
+                    ]]>
+                </if>
+                <if test="condition.createTimeList != null and condition.createTimeList.size() > 0">
+                    AND `create_time` in
+                    <foreach collection="condition.createTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.createTimeMin != null">
+                    <![CDATA[
+                    AND `create_time` >= #{condition.createTimeMin}
+                    ]]>
+                </if>
+                <if test="condition.createTimeMax != null">
+                    <![CDATA[
+                    AND `create_time` <= #{condition.createTimeMax}
+                    ]]>
+                </if>
+                <if test="condition.updateTimeList != null and condition.updateTimeList.size() > 0">
+                    AND `update_time` in
+                    <foreach collection="condition.updateTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.updateTimeMin != null">
+                    <![CDATA[
+                    AND `update_time` >= #{condition.updateTimeMin}
+                    ]]>
+                </if>
+                <if test="condition.updateTimeMax != null">
+                    <![CDATA[
+                    AND `update_time` <= #{condition.updateTimeMax}
+                    ]]>
+                </if>
+        </trim>
+    </sql>
+
+    <sql id="where">
+        <if test="condition != null">
+            <where>
+                <include refid="selectCondition"/>
+            </where>
+        </if>
+    </sql>
+    <sql id="listWhere">
+        <if test="conditionList != null and conditionList.size() > 0">
+            <where>
+                <foreach collection="conditionList" item="condition" open="(" close=")" separator=" OR ">
+                    (<include refid="selectCondition"/>)
+                </foreach>
+            </where>
+        </if>
+    </sql>
+    <sql id="orderBy">
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.userIdSort != null">
+                    <choose>
+                        <when test="order.userIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `user_id` ASC,
+                        </when>
+                        <otherwise>
+                            `user_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.usernameSort != null">
+                    <choose>
+                        <when test="order.usernameSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `username` ASC,
+                        </when>
+                        <otherwise>
+                            `username` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.passwordSort != null">
+                    <choose>
+                        <when test="order.passwordSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `password` ASC,
+                        </when>
+                        <otherwise>
+                            `password` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.saltSort != null">
+                    <choose>
+                        <when test="order.saltSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `salt` ASC,
+                        </when>
+                        <otherwise>
+                            `salt` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.emailSort != null">
+                    <choose>
+                        <when test="order.emailSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `email` ASC,
+                        </when>
+                        <otherwise>
+                            `email` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.mobileSort != null">
+                    <choose>
+                        <when test="order.mobileSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `mobile` ASC,
+                        </when>
+                        <otherwise>
+                            `mobile` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.realNameSort != null">
+                    <choose>
+                        <when test="order.realNameSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `real_name` ASC,
+                        </when>
+                        <otherwise>
+                            `real_name` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.avatarSort != null">
+                    <choose>
+                        <when test="order.avatarSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `avatar` ASC,
+                        </when>
+                        <otherwise>
+                            `avatar` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.deletedSort != null">
+                    <choose>
+                        <when test="order.deletedSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `deleted` ASC,
+                        </when>
+                        <otherwise>
+                            `deleted` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createUserSort != null">
+                    <choose>
+                        <when test="order.createUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `create_user` ASC,
+                        </when>
+                        <otherwise>
+                            `create_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateUserSort != null">
+                    <choose>
+                        <when test="order.updateUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `update_user` ASC,
+                        </when>
+                        <otherwise>
+                            `update_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createTimeSort != null">
+                    <choose>
+                        <when test="order.createTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `create_time` ASC,
+                        </when>
+                        <otherwise>
+                            `create_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateTimeSort != null">
+                    <choose>
+                        <when test="order.updateTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `update_time` ASC,
+                        </when>
+                        <otherwise>
+                            `update_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </sql>
+    <sql id="selectColumnList">
+        `user_id`,
+        `username`,
+        `email`,
+        `mobile`,
+        `real_name`,
+        `avatar`,
+        `deleted`,
+        `create_user`,
+        `update_user`,
+        `create_time`,
+        `update_time`
+    </sql>
+    <sql id="updateColumnSet">
+        <set>
+            <if test="entity.username != null">
+                `username` = #{entity.username},
+            </if>
+            <if test="entity.password != null">
+                `password` = #{entity.password},
+            </if>
+            <if test="entity.salt != null">
+                `salt` = #{entity.salt},
+            </if>
+            <if test="entity.email != null">
+                `email` = #{entity.email},
+            </if>
+            <if test="entity.mobile != null">
+                `mobile` = #{entity.mobile},
+            </if>
+            <if test="entity.realName != null">
+                `real_name` = #{entity.realName},
+            </if>
+            <if test="entity.avatar != null">
+                `avatar` = #{entity.avatar},
+            </if>
+            <if test="entity.deleted != null">
+                `deleted` = #{entity.deleted},
+            </if>
+            <if test="entity.createUser != null">
+                `create_user` = #{entity.createUser},
+            </if>
+            <if test="entity.updateUser != null">
+                `update_user` = #{entity.updateUser},
+            </if>
+            <if test="entity.createTime != null">
+                `create_time` = #{entity.createTime},
+            </if>
+            <if test="entity.updateTime != null">
+                `update_time` = #{entity.updateTime}
+            </if>
+        </set>
+    </sql>
+
+    <insert id="insert" parameterMap="BaseParameterMap" useGeneratedKeys="true" keyProperty="entity.userId">
+        insert into <include refid="tableName"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entity.userId != null">`user_id`,</if>
+            <if test="entity.username != null">`username`,</if>
+            <if test="entity.password != null">`password`,</if>
+            <if test="entity.salt != null">`salt`,</if>
+            <if test="entity.email != null">`email`,</if>
+            <if test="entity.mobile != null">`mobile`,</if>
+            <if test="entity.realName != null">`real_name`,</if>
+            <if test="entity.avatar != null">`avatar`,</if>
+            <if test="entity.deleted != null">`deleted`,</if>
+            <if test="entity.createUser != null">`create_user`,</if>
+            <if test="entity.updateUser != null">`update_user`,</if>
+            <if test="entity.createTime != null">`create_time`,</if>
+            <if test="entity.updateTime != null">`update_time`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entity.userId != null">#{entity.userId},</if>
+            <if test="entity.username != null">#{entity.username},</if>
+            <if test="entity.password != null">#{entity.password},</if>
+            <if test="entity.salt != null">#{entity.salt},</if>
+            <if test="entity.email != null">#{entity.email},</if>
+            <if test="entity.mobile != null">#{entity.mobile},</if>
+            <if test="entity.realName != null">#{entity.realName},</if>
+            <if test="entity.avatar != null">#{entity.avatar},</if>
+            <if test="entity.deleted != null">#{entity.deleted},</if>
+            <if test="entity.createUser != null">#{entity.createUser},</if>
+            <if test="entity.updateUser != null">#{entity.updateUser},</if>
+            <if test="entity.createTime != null">#{entity.createTime},</if>
+            <if test="entity.updateTime != null">#{entity.updateTime},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertList" parameterMap="BaseParameterMap">
+        <foreach collection="list" item="item" separator=";">
+            insert into <include refid="tableName"/>
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="item.userId != null">`user_id`,</if>
+                <if test="item.username != null">`username`,</if>
+                <if test="item.password != null">`password`,</if>
+                <if test="item.salt != null">`salt`,</if>
+                <if test="item.email != null">`email`,</if>
+                <if test="item.mobile != null">`mobile`,</if>
+                <if test="item.realName != null">`real_name`,</if>
+                <if test="item.avatar != null">`avatar`,</if>
+                <if test="item.deleted != null">`deleted`,</if>
+                <if test="item.createUser != null">`create_user`,</if>
+                <if test="item.updateUser != null">`update_user`,</if>
+                <if test="item.createTime != null">`create_time`,</if>
+                <if test="item.updateTime != null">`update_time`,</if>
+            </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="item.userId != null">#{item.userId},</if>
+                <if test="item.username != null">#{item.username},</if>
+                <if test="item.password != null">#{item.password},</if>
+                <if test="item.salt != null">#{item.salt},</if>
+                <if test="item.email != null">#{item.email},</if>
+                <if test="item.mobile != null">#{item.mobile},</if>
+                <if test="item.realName != null">#{item.realName},</if>
+                <if test="item.avatar != null">#{item.avatar},</if>
+                <if test="item.deleted != null">#{item.deleted},</if>
+                <if test="item.createUser != null">#{item.createUser},</if>
+                <if test="item.updateUser != null">#{item.updateUser},</if>
+                <if test="item.createTime != null">#{item.createTime},</if>
+                <if test="item.updateTime != null">#{item.updateTime},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+    <delete id="deleteByCondition" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </delete>
+
+    <delete id="deleteByConditionList" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </delete>
+
+    <update id="updateByCondition">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="where"/>
+    </update>
+
+    <update id="updateByConditionList">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="listWhere"/>
+    </update>
+
+    <select id="getByCondition" resultMap="BaseResultMap" parameterMap="BaseConditionMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="selectByConditionList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="listWhere"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="countByCondition" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="countByConditionList" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </select>
+</mapper>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>权限管理</title>
+    <link rel="stylesheet" href="/css/element-ui.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/element-ui-override.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="operate-btn-group">
+        <el-button @click="save" type="primary" icon="el-icon-document" size="small">保存</el-button>
+    </div>
+    <template v-if="treeData && treeData.length > 0">
+        <el-alert title="无法取消的权限是当前角色菜单关联的权限" type="warning" :closable="false" show-icon style="margin-bottom: 5px"></el-alert>
+        <el-tree :data="treeData" ref="permissionTree" :default-checked-keys="rolePermissionIds" @node-click="handleNodeClick"
+                 node-key="permissionId" default-expand-all show-checkbox :expand-on-click-node="false" :highlight-current="true"
+                 class="custom-tree" style="max-height: calc(100vh - 90px); overflow: auto">
+            <span class="custom-tree-node" slot-scope="{ node, data }">
+                <span :class="data.deleted == 0 ? '' : 'text-danger disabled'">{{ data.permissionName }}</span>
+            </span>
+        </el-tree>
+    </template>
+    <el-alert title="暂无数据" type="warning" :closable="false" v-else></el-alert>
+
+    <el-drawer title="权限详情" :visible.sync="detailDialogVisible" v-if="permissions['sys:permission:view']" direction="rtl" size="600px">
+        <el-form label-position="left" label-width="100px" size="small">
+            <el-form-item label="权限ID">
+                <span>{{permissionDetail.permissionId}}</span>
+            </el-form-item>
+            <el-form-item label="权限编码">
+                <span>{{permissionDetail.permissionCode}}</span>
+            </el-form-item>
+            <el-form-item label="权限名称">
+                <span>{{permissionDetail.permissionName}}</span>
+            </el-form-item>
+            <el-form-item label="类型">
+                <span>{{permissionDetail.typeText}}</span>
+            </el-form-item>
+            <el-form-item label="备注">
+                <pre>{{permissionDetail.remark}}</pre>
+            </el-form-item>
+        </el-form>
+    </el-drawer>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/element-ui.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            viewPermission: 'sys:role:permission',
+            permissions: {
+                'sys:role:permission': false,
+                'sys:permission:view': false,
+            },
+            deletedSelectList: [{
+                value: 0, text: '有效'
+            }, {
+                value: 1, text: '无效'
+            }],
+            permissionTypeSelectList: [],
+            roleId: '',
+            dataMap: {},
+            dataGroup: {},
+            treeData: [],
+            roleDetail: {
+                roleId: '',
+                roleCode: '',
+                roleName: '',
+                remark: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            permissionDetail: {
+                permissionId: '',
+                parentId: '',
+                permissionCode: '',
+                permissionName: '',
+                type: 0,
+                remark: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            rolePermissionIds: [],
+            newRolePermissionIds: [],
+
+            detailDialogVisible: false,
+        },
+        mounted: function () {
+            let self = this;
+
+            self.validatePermissions(self.permissions, self.viewPermission, () => {
+                self.roleId = commonFun.getParam('roleId');
+                self.initTypeSelectList();
+                self.getPermissionList();
+                self.getRolePermissionIdList();
+            });
+        },
+        methods: {
+            getRolePermissionIdList: function () {
+                let self = this;
+                let params = {
+                    roleId: self.roleId
+                };
+                let url = '/role-permission/get-permission-by-role';
+                self.ajaxGet(url, params, '获取角色权限列表失败！', response => {
+                    self.rolePermissionIds = response.data;
+                    self.getRoleMenuPermissionIdList();
+                });
+            },
+            getRoleMenuPermissionIdList: function () {
+                let self = this;
+                let params = {
+                    roleId: self.roleId
+                };
+                let url = '/role-permission/get-menu-permission-by-role';
+                self.ajaxGet(url, params, '获取角色菜单权限列表失败！', response => {
+                    let permissionIds = response.data;
+                    if (permissionIds && permissionIds.length > 0) {
+                        permissionIds.forEach(item => {
+                            self.dataMap[item].disabled = true;
+                        })
+                    }
+                });
+            },
+            getPermissionList: function () {
+                let self = this;
+                self.checkedList = [];
+
+                let params = {
+                    condition: {
+                        deleted: 0
+                    },
+                    order: {
+                        sortSort: sortEnum.ASC
+                    },
+                };
+
+                let url = '/permission/list';
+                self.ajaxPost(url, params, '获取权限列表失败！', response => {
+                    self.getData(response.data);
+                });
+            },
+            getData: function (list) {
+                let self = this;
+                let group = {};
+                list.forEach(item => {
+                    let key = item.parentId;
+                    let valArr = group[key] || [];
+                    valArr.push(item);
+                    group[key] = valArr;
+                    item.disabled = false;
+                    self.dataMap[item.permissionId] = item;
+                });
+                self.dataGroup = group;
+                for (let key in group) {
+                    group[key].forEach(item => {
+                        if (item.type == 0) {
+                            item.children = group[item.permissionId];
+                        }
+                    });
+                    self.treeData = group[0];
+                }
+            },
+            save: function () {
+                let self = this;
+                self.newRolePermissionIds = self.$refs["permissionTree"].getCheckedKeys();
+                let addPermissionIds = self.newRolePermissionIds.filter(item => self.rolePermissionIds.indexOf(item) === -1);
+                let delPermissionIds = self.rolePermissionIds.filter(item => self.newRolePermissionIds.indexOf(item) === -1);
+
+                let ajaxUrl = '/role-permission/batch-save';
+                let params = {
+                    mainId: self.roleId,
+                    addIdList: addPermissionIds,
+                    delIdList: delPermissionIds
+                };
+                self.ajaxPost(ajaxUrl, params, '操作失败！', response => {
+                    self.$notify({
+                        type: 'success',
+                        message: '保存成功'
+                    });
+                    self.rolePermissionIds = self.newRolePermissionIds;
+                });
+            },
+            handleNodeClick: function (data) {
+                let self = this;
+                self.permissionDetail = data;
+                self.detailDialogVisible = true;
+            },
+            getPermissionType: function (value) {
+                return this.permissionTypeSelectList.find(item => item.value == value);
+            },
+            getPermissionTypeText: function (value) {
+                let entity = this.getPermissionType(value);
+                return entity ? entity.text : '';
+            },
+            initTypeSelectList: function () {
+                let self = this;
+                let url = '/option/list';
+                let params = {
+                    condition: {
+                        source: 'sys_permission_type',
+                        deleted: '0'
+                    },
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取类型列表失败！', response => {
+                    self.permissionTypeSelectList = response.data;
+                });
+            },
+        }
+    });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+server:
+  port: 8828
+
+spring:
+  application:
+    name: quick-admin
+  cache:
+    type: redis
+    redis:
+      time-to-live: 5m
+  redis:
+    host: localhost
+    port: 6379
+
+  datasource:
+    sys:
+      url: jdbc:mysql://localhost:3306/quick_permission?allowMultiQueries=true&useSSL=true&serverTimezone=Asia/Shanghai
+      username: root
+      password: 123456
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      time-between-eviction-runs-millis: 18800
+      time-between-connect-error-millis: 60000
+      test-while-idle: true
+      test-on-borrow: false
+      validation-query: SELECT 1
+      initial-size: 5
+      max-active: 10
+      min-idle: 5
+      max-wait: 10000
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: true
+  resources:
+    # static-locations: classpath:/static/, classpath:/html/
+    # 本地测试使用
+    static-locations: file:/Workspace/github.com/java/quick-permission/quick-admin/src/main/resources/static/, file:/Workspace/github.com/java/quick-permission/quick-admin/src/main/resources/html/
+
+pagehelper:
+  reasonable: true
+  params: count=countSql
+  auto-runtime-dialect: true
+
+quick:
+  root-user-roles: administrator
+  anonymousUrls: /account/login, /account/captcha.jpg, /account/*.html, /, /*.html, /*/*.html, /*/*/*.html, /css/**, /fonts/**, /js/**
+  token-expiration-time: 1440
+  captcha-expiration-time: 60

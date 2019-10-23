@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 存放手写的sql -->
+<mapper namespace="org.xi.quick.sys.mapper.PermissionMapper">
+
+    <resultMap id="ExtensionResultMap" extends="BaseResultMap" type="org.xi.quick.sys.models.entity.extension.PermissionEntityExtension">
+        <result property="typeText" column="type_text"/>
+    </resultMap>
+
+    <parameterMap id="ConditionExtensionMap" type="org.xi.quick.sys.models.condition.extension.PermissionConditionExtension"></parameterMap>
+
+    <select id="getByPk" resultMap="ExtensionResultMap">
+        SELECT DISTINCT
+        MT.`permission_id`,
+        MT.`parent_id`,
+        MT.`permission_code`,
+        MT.`permission_name`,
+        MT.`type`,
+        MT.`remark`,
+        MT.`deleted`,
+        MT.`create_user`,
+        MT.`update_user`,
+        MT.`create_time`,
+        MT.`update_time`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+        MT.`permission_id` = #{permissionId}
+        </where>
+    </select>
+
+    <select id="getExList" resultMap="ExtensionResultMap" parameterMap="ConditionExtensionMap">
+        SELECT DISTINCT
+        MT.`permission_id`,
+        MT.`parent_id`,
+        MT.`permission_code`,
+        MT.`permission_name`,
+        MT.`type`,
+        MT.`remark`,
+        MT.`deleted`,
+        MT.`create_user`,
+        MT.`update_user`,
+        MT.`create_time`,
+        MT.`update_time`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+            <if test="condition.permissionId != null">
+                AND MT.`permission_id` = #{condition.permissionId}
+            </if>
+            <if test="condition.permissionIdList != null and condition.permissionIdList.size() > 0">
+                AND MT.`permission_id` in
+                <foreach collection="condition.permissionIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.permissionIdMin != null">
+                <![CDATA[
+                AND MT.`permission_id` >= #{condition.permissionIdMin}
+                ]]>
+            </if>
+            <if test="condition.permissionIdMax != null">
+                <![CDATA[
+                AND MT.`permission_id` <= #{condition.permissionIdMax}
+                ]]>
+            </if>
+            <if test="condition.parentId != null">
+                AND MT.`parent_id` = #{condition.parentId}
+            </if>
+            <if test="condition.parentIdList != null and condition.parentIdList.size() > 0">
+                AND MT.`parent_id` in
+                <foreach collection="condition.parentIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.parentIdMin != null">
+                <![CDATA[
+                AND MT.`parent_id` >= #{condition.parentIdMin}
+                ]]>
+            </if>
+            <if test="condition.parentIdMax != null">
+                <![CDATA[
+                AND MT.`parent_id` <= #{condition.parentIdMax}
+                ]]>
+            </if>
+            <if test="condition.permissionCode != null and condition.permissionCode != ''">
+                AND MT.`permission_code` = #{condition.permissionCode}
+            </if>
+            <if test="condition.permissionCodeList != null and condition.permissionCodeList.size() > 0">
+                AND MT.`permission_code` in
+                <foreach collection="condition.permissionCodeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.permissionCodeIsEmpty != null and condition.permissionCodeIsEmpty == true">
+                AND MT.`permission_code` = ''
+            </if>
+            <if test="condition.permissionCodeStartWith != null and condition.permissionCodeStartWith != ''">
+                AND MT.`permission_code` LIKE concat(#{condition.permissionCodeStartWith}, '%')
+            </if>
+            <if test="condition.permissionCodeContains != null and condition.permissionCodeContains != ''">
+                AND MT.`permission_code` LIKE concat('%', #{condition.permissionCodeContains}, '%')
+            </if>
+            <if test="condition.permissionName != null and condition.permissionName != ''">
+                AND MT.`permission_name` = #{condition.permissionName}
+            </if>
+            <if test="condition.permissionNameList != null and condition.permissionNameList.size() > 0">
+                AND MT.`permission_name` in
+                <foreach collection="condition.permissionNameList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.permissionNameIsEmpty != null and condition.permissionNameIsEmpty == true">
+                AND MT.`permission_name` = ''
+            </if>
+            <if test="condition.permissionNameStartWith != null and condition.permissionNameStartWith != ''">
+                AND MT.`permission_name` LIKE concat(#{condition.permissionNameStartWith}, '%')
+            </if>
+            <if test="condition.permissionNameContains != null and condition.permissionNameContains != ''">
+                AND MT.`permission_name` LIKE concat('%', #{condition.permissionNameContains}, '%')
+            </if>
+            <if test="condition.type != null">
+                AND MT.`type` = #{condition.type}
+            </if>
+            <if test="condition.typeList != null and condition.typeList.size() > 0">
+                AND MT.`type` in
+                <foreach collection="condition.typeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.typeMin != null">
+                <![CDATA[
+                AND MT.`type` >= #{condition.typeMin}
+                ]]>
+            </if>
+            <if test="condition.typeMax != null">
+                <![CDATA[
+                AND MT.`type` <= #{condition.typeMax}
+                ]]>
+            </if>
+            <if test="condition.deleted != null">
+                AND MT.`deleted` = #{condition.deleted}
+            </if>
+            <if test="condition.createUser != null">
+                AND MT.`create_user` = #{condition.createUser}
+            </if>
+            <if test="condition.createUserList != null and condition.createUserList.size() > 0">
+                AND MT.`create_user` in
+                <foreach collection="condition.createUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.createUserMin != null">
+                <![CDATA[
+                AND MT.`create_user` >= #{condition.createUserMin}
+                ]]>
+            </if>
+            <if test="condition.createUserMax != null">
+                <![CDATA[
+                AND MT.`create_user` <= #{condition.createUserMax}
+                ]]>
+            </if>
+            <if test="condition.updateUser != null">
+                AND MT.`update_user` = #{condition.updateUser}
+            </if>
+            <if test="condition.updateUserList != null and condition.updateUserList.size() > 0">
+                AND MT.`update_user` in
+                <foreach collection="condition.updateUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.updateUserMin != null">
+                <![CDATA[
+                AND MT.`update_user` >= #{condition.updateUserMin}
+                ]]>
+            </if>
+            <if test="condition.updateUserMax != null">
+                <![CDATA[
+                AND MT.`update_user` <= #{condition.updateUserMax}
+                ]]>
+            </if>
+            <if test="condition.createTimeList != null and condition.createTimeList.size() > 0">
+                AND MT.`create_time` in
+                <foreach collection="condition.createTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.createTimeMin != null">
+                <![CDATA[
+                AND MT.`create_time` >= #{condition.createTimeMin}
+                ]]>
+            </if>
+            <if test="condition.createTimeMax != null">
+                <![CDATA[
+                AND MT.`create_time` <= #{condition.createTimeMax}
+                ]]>
+            </if>
+            <if test="condition.updateTimeList != null and condition.updateTimeList.size() > 0">
+                AND MT.`update_time` in
+                <foreach collection="condition.updateTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.updateTimeMin != null">
+                <![CDATA[
+                AND MT.`update_time` >= #{condition.updateTimeMin}
+                ]]>
+            </if>
+            <if test="condition.updateTimeMax != null">
+                <![CDATA[
+                AND MT.`update_time` <= #{condition.updateTimeMax}
+                ]]>
+            </if>
+        </where>
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.permissionIdSort != null">
+                    <choose>
+                        <when test="order.permissionIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`permission_id` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`permission_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.parentIdSort != null">
+                    <choose>
+                        <when test="order.parentIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`parent_id` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`parent_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.permissionCodeSort != null">
+                    <choose>
+                        <when test="order.permissionCodeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`permission_code` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`permission_code` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.permissionNameSort != null">
+                    <choose>
+                        <when test="order.permissionNameSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`permission_name` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`permission_name` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.typeSort != null">
+                    <choose>
+                        <when test="order.typeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`type` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`type` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.deletedSort != null">
+                    <choose>
+                        <when test="order.deletedSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`deleted` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`deleted` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createUserSort != null">
+                    <choose>
+                        <when test="order.createUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`create_user` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`create_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateUserSort != null">
+                    <choose>
+                        <when test="order.updateUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`update_user` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`update_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createTimeSort != null">
+                    <choose>
+                        <when test="order.createTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`create_time` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`create_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateTimeSort != null">
+                    <choose>
+                        <when test="order.updateTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`update_time` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`update_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </select>
+</mapper>

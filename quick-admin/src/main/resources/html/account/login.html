@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>test</title>
+    <link rel="stylesheet" href="/css/element-ui.css">
+    <link rel="stylesheet" href="/css/material-icons.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/element-ui-override.css">
+    <style>
+        #loginForm {
+            position: absolute;
+            right: 20%;
+            top: 20%;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-card id="loginForm" shadow="never" style="width: 360px">
+        <div slot="header" class="clearfix">
+            <span>登录</span>
+            <!--            <a href="/account/register.html" class="text-primary" style="float: right;">注册</a>-->
+        </div>
+        <el-form :model="loginForm" :rules="loginFormRules" ref="loginForm" label-width="0">
+            <el-form-item prop="account">
+                <el-input v-model="loginForm.account" placeholder="用户名/手机号/邮箱"></el-input>
+            </el-form-item>
+            <el-form-item prop="password">
+                <div style="display: flex;">
+                    <el-input type="password" v-model="loginForm.password" placeholder="密码" style="flex: 1"></el-input>
+                    <a href="/account/forget-password.html" style="margin-left: 10px;">忘记密码</a>
+                </div>
+            </el-form-item>
+            <el-form-item prop="captcha">
+                <div style="display: flex;">
+                    <el-input v-model="loginForm.captcha" placeholder="图片验证码" style="flex: 1"></el-input>
+                    <img @click="refreshCaptcha" :src="captchaUrl" style="margin-left: 10px; width: 120px; height: 40px"/>
+                </div>
+            </el-form-item>
+            <el-form-item>
+                <el-button @click="login" type="primary" style="width: 100%">登录</el-button>
+            </el-form-item>
+        </el-form>
+    </el-card>
+</div>
+<script src="/js/vue.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/element-ui.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            loginForm: {
+                account: 'administrator',
+                password: '1',
+                captcha: '1',
+                uuid: ''
+            },
+            loginFormRules: {
+                account: [{required: true, message: '请输入账号', trigger: 'blur'}],
+                password: [{required: true, message: '请输入密码', trigger: 'blur'}],
+                captcha: [
+                    {required: true, message: '请输入验证码', trigger: 'blur'},
+                    // {min: 5, max: 5, message: '验证码长度为5', trigger: 'blur'}
+                ]
+            },
+            captchaUrl: '',
+            uuid: ''
+        },
+        mounted: function () {
+            let self = this;
+            self.uuid = commonFun.getUUID();
+            self.loginForm.uuid = self.uuid;
+            self.refreshCaptcha();
+        },
+        methods: {
+            login: function () {
+                let self = this;
+                this.$refs['loginForm'].validate((valid) => {
+                    if (valid) {
+                        self.ajaxPost('/account/login', self.loginForm, '登录异常', function (response) {
+                            let token = response.data;
+                            let domain = document.location.hostname;
+                            commonFun.setCookie(AUTH_COOKIE_NAME, token, domain);
+                            location.href = '/';
+                        }, function () {
+                            self.refreshCaptcha();
+                        });
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            refreshCaptcha: function () {
+                let self = this;
+                self.captchaUrl = '/account/captcha.jpg?uuid=' + self.uuid + '&v=' + new Date().getTime();
+            }
+        }
+    });
+</script>
+</body>
+</html>

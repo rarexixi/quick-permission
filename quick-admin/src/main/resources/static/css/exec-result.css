@@ -1,0 +1,71 @@
+
+
+.progress {
+    height: 12px;
+    background: rgba(105, 122, 142, 0.4);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+.progress .progress-bar {
+    position: absolute;
+    height: 100%;
+    min-width: 2px;
+    border-radius: 6px;
+}
+.progress .progress-bar.progress-preparing,
+.progress .progress-bar.progress-running {
+    background-color: #5bc0de;
+    background-size: 40px 40px;
+    background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+    animation: reverse progress-bar-stripes 0.40s linear infinite;
+}
+.progress .progress-bar.progress-succeeded {
+    background-color: #67c23a;
+}
+.progress .progress-bar.progress-failed {
+    background-color: #f56c6c;
+}
+.progress .progress-bar.progress-killing,
+.progress .progress-bar.progress-killed {
+    background-color: #fab6b6;
+}
+.progress .progress-bar.progress-cancelled,
+.progress .progress-bar.progress-skipped {
+    background-color: #fab6b6;
+}
+.progress .progress-bar.progress-ready {
+    background-color: #606266;
+}
+.progress .progress-bar.progress-paused {
+    background-color: #E6A23C;
+}
+@keyframes progress-bar-stripes {
+    from{background-position:40px 0}
+    to{background-position:0 0}
+}
+
+.text-preparing,
+.text-running {
+    color: #5bc0de;
+}
+.text-succeeded {
+    color: #67c23a;
+}
+.text-failed {
+    color: #f56c6c;
+}
+.text-killing,
+.text-killed {
+    color: #fab6b6;
+}
+.text-cancelled,
+.text-skipped {
+    color: #fab6b6;
+}
+.text-ready {
+    color: #606266;
+}
+.text-paused {
+    color: #E6A23C;
+}

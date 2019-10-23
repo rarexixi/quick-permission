@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 默认生成的的sql，不要修改！！！ -->
+<mapper namespace="org.xi.quick.sys.mapper.RoleMenuMapper">
+
+    <resultMap id="BaseResultMap" type="org.xi.quick.sys.models.entity.RoleMenuEntity">
+        <result property="roleId" column="role_id"/>
+        <result property="menuId" column="menu_id"/>
+    </resultMap>
+
+    <parameterMap id="BaseParameterMap" type="org.xi.quick.sys.models.entity.RoleMenuEntity"></parameterMap>
+    <parameterMap id="BaseConditionMap" type="org.xi.quick.sys.models.condition.RoleMenuCondition"></parameterMap>
+
+    <sql id="tableName">`sys_role_menu`</sql>
+    <sql id="selectCondition">
+        <trim prefixOverrides="AND|OR">
+                <if test="condition.roleId != null">
+                    AND `role_id` = #{condition.roleId}
+                </if>
+                <if test="condition.roleIdList != null and condition.roleIdList.size() > 0">
+                    AND `role_id` in
+                    <foreach collection="condition.roleIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.roleIdMin != null">
+                    <![CDATA[
+                    AND `role_id` >= #{condition.roleIdMin}
+                    ]]>
+                </if>
+                <if test="condition.roleIdMax != null">
+                    <![CDATA[
+                    AND `role_id` <= #{condition.roleIdMax}
+                    ]]>
+                </if>
+                <if test="condition.menuId != null">
+                    AND `menu_id` = #{condition.menuId}
+                </if>
+                <if test="condition.menuIdList != null and condition.menuIdList.size() > 0">
+                    AND `menu_id` in
+                    <foreach collection="condition.menuIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.menuIdMin != null">
+                    <![CDATA[
+                    AND `menu_id` >= #{condition.menuIdMin}
+                    ]]>
+                </if>
+                <if test="condition.menuIdMax != null">
+                    <![CDATA[
+                    AND `menu_id` <= #{condition.menuIdMax}
+                    ]]>
+                </if>
+        </trim>
+    </sql>
+
+    <sql id="where">
+        <if test="condition != null">
+            <where>
+                <include refid="selectCondition"/>
+            </where>
+        </if>
+    </sql>
+    <sql id="listWhere">
+        <if test="conditionList != null and conditionList.size() > 0">
+            <where>
+                <foreach collection="conditionList" item="condition" open="(" close=")" separator=" OR ">
+                    (<include refid="selectCondition"/>)
+                </foreach>
+            </where>
+        </if>
+    </sql>
+    <sql id="orderBy">
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.roleIdSort != null">
+                    <choose>
+                        <when test="order.roleIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `role_id` ASC,
+                        </when>
+                        <otherwise>
+                            `role_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.menuIdSort != null">
+                    <choose>
+                        <when test="order.menuIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `menu_id` ASC,
+                        </when>
+                        <otherwise>
+                            `menu_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </sql>
+    <sql id="selectColumnList">
+        `role_id`,
+        `menu_id`
+    </sql>
+    <sql id="updateColumnSet">
+        <set>
+            <if test="entity.roleId != null">
+                `role_id` = #{entity.roleId},
+            </if>
+            <if test="entity.menuId != null">
+                `menu_id` = #{entity.menuId}
+            </if>
+        </set>
+    </sql>
+
+    <insert id="insert" parameterMap="BaseParameterMap">
+        insert into <include refid="tableName"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entity.roleId != null">`role_id`,</if>
+            <if test="entity.menuId != null">`menu_id`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entity.roleId != null">#{entity.roleId},</if>
+            <if test="entity.menuId != null">#{entity.menuId},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertList" parameterMap="BaseParameterMap">
+        <foreach collection="list" item="item" separator=";">
+            insert into <include refid="tableName"/>
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="item.roleId != null">`role_id`,</if>
+                <if test="item.menuId != null">`menu_id`,</if>
+            </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="item.roleId != null">#{item.roleId},</if>
+                <if test="item.menuId != null">#{item.menuId},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+    <delete id="deleteByCondition" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </delete>
+
+    <delete id="deleteByConditionList" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </delete>
+
+    <update id="updateByCondition">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="where"/>
+    </update>
+
+    <update id="updateByConditionList">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="listWhere"/>
+    </update>
+
+    <select id="getByCondition" resultMap="BaseResultMap" parameterMap="BaseConditionMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="selectByConditionList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="listWhere"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="countByCondition" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="countByConditionList" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </select>
+</mapper>

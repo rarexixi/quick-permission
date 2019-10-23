@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>权限管理</title>
+    <link rel="stylesheet" href="/css/element-ui.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/element-ui-override.css">
+</head>
+<body>
+<div id="app">
+    <el-breadcrumb separator="/">
+        <el-breadcrumb-item>权限管理</el-breadcrumb-item>
+        <el-breadcrumb-item>权限列表</el-breadcrumb-item>
+    </el-breadcrumb>
+    <div class="operate-btn-group">
+        <el-button @click="add()" v-if="permissions['sys:permission:add']" type="primary" icon="el-icon-plus" size="small">添加</el-button>
+        <el-button @click="enableSelected" v-if="permissions['sys:permission:enable'] && multipleSelection.length > 0" type="success" icon="el-icon-check" size="small">启用</el-button>
+        <el-button @click="disableSelected" v-if="permissions['sys:permission:disable'] && multipleSelection.length > 0" type="warning" icon="el-icon-close" size="small">禁用</el-button>
+        <el-button @click="delSelected" v-if="permissions['sys:permission:del'] && multipleSelection.length > 0" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+    </div>
+    <el-tree v-if="treeData && treeData.length > 0"
+             :data="treeData" ref="navMenuTree" @check-change="handleCheckChange" @node-click="handleNodeClick" node-key="permissionId"
+             :expand-on-click-node="false" :highlight-current="true"
+             :show-checkbox="permissions['sys:permission:disable'] || permissions['sys:permission:enable'] || permissions['sys:permission:del']"
+             class="custom-tree" style="max-height: calc(100vh - 110px); overflow: auto">
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+            <span :class="data.deleted == 0 ? '' : 'text-danger disabled'">{{ data.permissionName }}</span>
+            <span class="custom-operation">
+                <el-tooltip effect="dark" :open-delay="500" content="添加" placement="top" v-if="permissions['sys:permission:add'] && data.type == 0">
+                    <i @click="add(data)" class="text-primary el-icon-plus"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="编辑" placement="top" v-if="permissions['sys:permission:update']">
+                    <i @click="edit(data, false)" class="text-primary el-icon-edit"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="复制" placement="top" v-if="permissions['sys:permission:add']">
+                    <i @click="edit(data, true)" class="text-primary el-icon-document-copy"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="禁用" placement="top" v-if="permissions['sys:permission:disable'] && data.deleted==0">
+                    <i @click="disable(data)" class="text-warning el-icon-close"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="启用" placement="top" v-else-if="permissions['sys:permission:enable'] && data.deleted==1">
+                    <i @click="enable(data)" class="text-success el-icon-check"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="删除" placement="top" v-if="permissions['sys:permission:del']">
+                    <i @click="del(data)" class="text-danger el-icon-delete"></i>
+                </el-tooltip>
+            </span>
+        </span>
+    </el-tree>
+    <el-alert title="暂无数据" type="warning" :closable="false" v-else></el-alert>
+
+    <el-drawer :title="isCreate ? '添加权限' : '编辑权限'" :before-close="resetTreeBtnClick" :visible.sync="addOrEditDialogVisible" direction="rtl" size="600px"
+               v-if="permissions['sys:permission:add'] || permissions['sys:permission:update']">
+        <el-form ref="addOrEditParams" :model="addOrEditParams" label-position="left" label-width="120px" size="small">
+            <el-form-item label="模块" v-if="addOrEditParams.parentId != 0">
+                <span>{{getPermissionName(addOrEditParams.parentId)}}</span>
+            </el-form-item>
+            <el-form-item label="权限编码">
+                <el-input v-model="addOrEditParams.permissionCode" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="权限名称">
+                <el-input v-model="addOrEditParams.permissionName" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="类型">
+                <el-radio-group v-model="addOrEditParams.type">
+                    <el-radio v-for="item in typeSelectList" :label="item.value">{{item.text}}</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input v-model="addOrEditParams.remark" type="textarea" :autosize="{ minRows: 5, maxRows: 100}"></el-input>
+            </el-form-item>
+            <template v-if="!isCreate">
+                <el-form-item label="是否删除">
+                    <span :class="detail.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(detail.deleted)}}</span>
+                </el-form-item>
+                <el-form-item label="创建人">
+                    <span>{{detail.createUser}}</span>
+                </el-form-item>
+                <el-form-item label="修改人">
+                    <span>{{detail.updateUser}}</span>
+                </el-form-item>
+                <el-form-item label="创建时间">
+                    <span>{{detail.createTime | formatDateTime}}</span>
+                </el-form-item>
+                <el-form-item label="更新时间">
+                    <span>{{detail.updateTime | formatDateTime}}</span>
+                </el-form-item>
+            </template>
+            <el-button @click="save" type="primary" icon="el-icon-document" size="small">{{isCreate ? '创建' : '保存'}}</el-button>
+        </el-form>
+    </el-drawer>
+    <el-drawer title="权限详情" :before-close="resetTreeBtnClick" :visible.sync="detailDialogVisible" direction="rtl" size="600px">
+        <el-form label-position="left" label-width="120px" size="small">
+            <el-form-item label="模块" v-if="addOrEditParams.parentId != 0">
+                <span>{{getPermissionName(detail.parentId)}}</span>
+            </el-form-item>
+            <el-form-item label="权限编码">
+                <span>{{detail.permissionCode}}</span>
+            </el-form-item>
+            <el-form-item label="权限名称">
+                <span>{{detail.permissionName}}</span>
+            </el-form-item>
+            <el-form-item label="类型">
+                <span>{{getTypeText(detail.type)}}</span>
+            </el-form-item>
+            <el-form-item label="备注">
+                <span>{{detail.remark}}</span>
+            </el-form-item>
+            <el-form-item label="是否删除">
+                <span :class="detail.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(detail.deleted)}}</span>
+            </el-form-item>
+            <el-form-item label="创建人">
+                <span>{{detail.createUser}}</span>
+            </el-form-item>
+            <el-form-item label="修改人">
+                <span>{{detail.updateUser}}</span>
+            </el-form-item>
+            <el-form-item label="创建时间">
+                <span>{{detail.createTime | formatDateTime}}</span>
+            </el-form-item>
+            <el-form-item label="更新时间">
+                <span>{{detail.updateTime | formatDateTime}}</span>
+            </el-form-item>
+            <el-button @click="edit(detail, false)" v-if="permissions['sys:permission:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
+        </el-form>
+    </el-drawer>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/element-ui.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            viewPermission: 'sys:permission:view',
+            permissions: {
+                'sys:permission:view': false,
+                'sys:permission:add': false,
+                'sys:permission:del': false,
+                'sys:permission:update': false,
+                'sys:permission:disable': false,
+                'sys:permission:enable': false,
+                'sys:permission:export': false,
+            },
+            deletedSelectList: [{
+                value: 0, text: '有效'
+            }, {
+                value: 1, text: '无效'
+            }],
+            typeSelectList: [],
+            pkParams: {
+                permissionId: '',
+                copy: false
+            },
+            searchParams: {},
+            sortParams: {
+                permissionIdSort: sortEnum.ASC
+            },
+            multipleSelection: [],
+            treeData: [],
+            listMap: {},
+            addOrEditParams: {
+                permissionId: '',
+                parentId: '',
+                permissionCode: '',
+                permissionName: '',
+                type: '',
+                remark: '',
+            },
+            detail: {
+                permissionId: '',
+                parentId: '',
+                permissionCode: '',
+                permissionName: '',
+                type: 0,
+                remark: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            treeBtnClick: false,
+            isCreate: true,
+            addOrEditDialogVisible: false,
+            detailDialogVisible: false
+        },
+        mounted: function () {
+            let self = this;
+            self.validatePermissions(self.permissions, self.viewPermission, () => {
+                self.initTypeSelectList();
+                self.search();
+            });
+        },
+        methods: {
+            handleNodeClick: function (data) {
+                let self = this;
+                if (self.treeBtnClick) return;
+                self.detailDialogVisible = true;
+                self.detail = data;
+            },
+            handleCheckChange: function (data, checked, indeterminate) {
+                let self = this;
+                self.multipleSelection = self.$refs['navMenuTree'].getCheckedNodes()
+            },
+            getData: function (list) {
+                let self = this;
+                let group = {};
+                list.forEach(item => {
+                    let key = item.parentId;
+                    self.listMap[item.permissionId] = item;
+                    let valArr = group[key] || [];
+                    valArr.push(item);
+                    group[key] = valArr;
+                });
+                for (let key in group) {
+                    group[key].forEach(item => {
+                        if (item.type == 0) {
+                            item.children = group[item.permissionId];
+                        }
+                    });
+                    self.treeData = group[0];
+                }
+            },
+            search: function () {
+                let self = this;
+                self.checkedList = [];
+
+                let params = {
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+
+                let url = '/permission/list';
+                self.ajaxPost(url, params, '获取权限列表失败！', response => {
+                    self.getData(response.data);
+                });
+            },
+            add: function (item) {
+                let self = this;
+                self.resetSave();
+                self.treeBtnClick = true;
+                self.addOrEditDialogVisible = true;
+                if (item) {
+                    self.addOrEditParams.parentId = item.permissionId;
+                    self.addOrEditParams.parentName = item.permissionName;
+                    self.addOrEditParams.permissionCode = item.permissionCode + ':';
+                }
+            },
+            edit: function (item, copy) {
+                let self = this;
+                self.resetSave();
+                self.treeBtnClick = true;
+                self.isCreate = copy;
+                self.addOrEditDialogVisible = true;
+                self.pkParams.permissionId = item.permissionId;
+                self.pkParams.copy = copy;
+                self.detail = item;
+
+                if (!copy) {
+                    self.addOrEditParams.permissionId = item.permissionId;
+                }
+                self.addOrEditParams.parentId = item.parentId;
+                self.addOrEditParams.permissionCode = item.permissionCode;
+                self.addOrEditParams.permissionName = item.permissionName;
+                self.addOrEditParams.type = item.type + '';
+                self.addOrEditParams.remark = item.remark;
+                self.addOrEditParams.deleted = item.deleted;
+            },
+            save: function () {
+                let self = this;
+                let ajaxUrl;
+                if (self.pkParams.copy || (self.pkParams.permissionId == '')) {
+                    ajaxUrl = '/permission/add';
+                } else {
+                    ajaxUrl = '/permission/update';
+                }
+
+                self.ajaxPost(ajaxUrl, self.addOrEditParams, '操作失败！', response => {
+                    self.$notify({
+                        message: '操作成功！',
+                        type: 'success'
+                    });
+                    self.resetSave();
+                    self.resetTreeBtnClick();
+                    setTimeout(self.search, 1000);
+                });
+            },
+            resetSave: function () {
+                let self = this;
+                self.pkParams.permissionId = '';
+                self.pkParams.permissionId = '';
+                self.addOrEditParams.permissionId = '';
+                self.addOrEditParams.parentId = 0;
+                self.addOrEditParams.permissionCode = '';
+                self.addOrEditParams.permissionName = '';
+                self.addOrEditParams.type = '';
+                self.addOrEditParams.remark = '';
+                self.treeBtnClick = false;
+                self.isCreate = true;
+                self.addOrEditDialogVisible = false;
+                self.detailDialogVisible = false;
+            },
+            resetTreeBtnClick: function (done) {
+                let self = this;
+                self.treeBtnClick = false;
+                if (done) done();
+            },
+            enableSelected: function () {
+                this.execSelected("确定启用吗？", '/permission/enable', "启用成功！", "启用失败！");
+            },
+            disableSelected: function () {
+                this.execSelected("确定禁用吗？", '/permission/disable', "禁用成功！", "禁用失败！");
+            },
+            delSelected: function () {
+                this.execSelected("确定删除吗？", '/permission/delete', "删除成功！", "删除失败！");
+            },
+            execSelected: function (confirmMsg, url, successMsg, failMsg) {
+                let self = this;
+                let params = {
+                    permissionIdList: self.multipleSelection.map(item => item.permissionId)
+                };
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => self.search());
+            },
+            enable: function (item) {
+                this.exec(item, '/permission/enable', '确定启用吗？', '启用成功！', '启用失败！');
+            },
+            disable: function (item) {
+                this.exec(item, '/permission/disable', '确定禁用吗？', '禁用成功！', '禁用失败！');
+            },
+            del: function (item) {
+                this.exec(item, '/permission/delete', '确定删除吗？', '删除成功！', '删除失败！');
+            },
+            exec: function (item, url, confirmMsg, successMsg, failMsg) {
+                let self = this;
+                self.treeBtnClick = true;
+                let params = self.getPkParams(item);
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => {
+                    self.search();
+                }, response => {
+                }, self.resetTreeBtnClick);
+            },
+            getPkParams: function (item) {
+                return {
+                    permissionId: item.permissionId
+                };
+            },
+            getPermissionName: function (id) {
+                let self = this;
+                if (id) {
+                    let permission = self.listMap[id];
+                    if (permission) return permission.permissionName;
+                }
+                return '';
+            },
+            getDeletedText: function (value) {
+                let self = this;
+                let entity = self.deletedSelectList.find(item => item.value == value);
+                return entity ? entity.text : '';
+            },
+            getType: function (value) {
+                return this.typeSelectList.find(item => item.value == value);
+            },
+            getTypeText: function (value) {
+                let entity = this.getType(value);
+                return entity ? entity.text : '';
+            },
+            initTypeSelectList: function () {
+                let self = this;
+                let url = '/option/list';
+                let params = {
+                    condition: {
+                        source: 'sys_permission_type',
+                        deleted: '0'
+                    },
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取类型列表失败！', response => {
+                    self.typeSelectList = response.data;
+                });
+            },
+            exportExcel: function () {
+                let self = this;
+
+                let params = {
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+                let paramsStr = JSON.stringify(params, (key, value) => {
+                    if (value) return value;
+                    return undefined;
+                });
+                window.open('/permission/export?params=' + encodeURIComponent(paramsStr));
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

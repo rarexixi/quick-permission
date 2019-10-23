@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>菜单管理</title>
+    <link rel="stylesheet" href="/css/element-ui.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/element-ui-override.css">
+</head>
+<body>
+<div id="app">
+    <el-breadcrumb separator="/">
+        <el-breadcrumb-item>菜单管理</el-breadcrumb-item>
+        <el-breadcrumb-item>菜单列表</el-breadcrumb-item>
+    </el-breadcrumb>
+    <div class="operate-btn-group">
+        <el-button @click="add()" v-if="permissions['sys:menu:add']" type="primary" icon="el-icon-plus" size="small">添加</el-button>
+        <el-button @click="enableSelected" v-if="permissions['sys:menu:enable'] && multipleSelection.length > 0" type="success" icon="el-icon-check" size="small">启用</el-button>
+        <el-button @click="disableSelected" v-if="permissions['sys:menu:disable'] && multipleSelection.length > 0" type="warning" icon="el-icon-close" size="small">禁用</el-button>
+        <el-button @click="delSelected" v-if="permissions['sys:menu:del'] && multipleSelection.length > 0" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+    </div>
+    <el-tree v-if="treeData && treeData.length > 0"
+             :data="treeData" ref="navMenuTree" @check-change="handleCheckChange" @node-click="handleNodeClick" node-key="menuId"
+             default-expand-all :expand-on-click-node="false" :highlight-current="true"
+             :show-checkbox="permissions['sys:menu:disable'] || permissions['sys:menu:enable'] || permissions['sys:menu:del']"
+             class="custom-tree" style="max-height: calc(100vh - 110px); overflow: auto">
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+            <span :class="data.deleted == 0 ? '' : 'text-danger disabled'">{{ data.menuName }}</span>
+            <span class="custom-operation">
+                <el-tooltip effect="dark" :open-delay="500" content="添加" placement="top" v-if="permissions['sys:menu:add'] && data.type == 0 && node.level < 3">
+                    <i @click="add(data)" class="text-primary el-icon-plus"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="编辑" placement="top" v-if="permissions['sys:menu:update']">
+                    <i @click="edit(data, false)" class="text-primary el-icon-edit"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="复制" placement="top" v-if="permissions['sys:menu:add']">
+                    <i @click="edit(data, true)" class="text-primary el-icon-document-copy"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="配置权限" placement="top" v-if="permissions['sys:menu:permission']">
+                    <i @click="configPermission(data)" class="text-primary el-icon-lock"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="禁用" placement="top" v-if="permissions['sys:menu:disable'] && data.deleted==0">
+                    <i @click="disable(data)" class="text-warning el-icon-close"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="启用" placement="top" v-else-if="permissions['sys:menu:enable'] && data.deleted==1">
+                    <i @click="enable(data)" class="text-success el-icon-check"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="删除" placement="top" v-if="permissions['sys:menu:del']">
+                    <i @click="del(data)" class="text-danger el-icon-delete"></i>
+                </el-tooltip>
+            </span>
+        </span>
+    </el-tree>
+    <el-alert title="暂无数据" type="warning" :closable="false" v-else></el-alert>
+
+    <el-drawer :title="isCreate ? '添加菜单' : '编辑菜单'" :before-close="resetTreeBtnClick" :visible.sync="addOrEditDialogVisible" direction="rtl" size="600px"
+               v-if="permissions['sys:menu:add'] || permissions['sys:menu:update']">
+        <el-form ref="addOrEditParams" :model="addOrEditParams" label-position="left"
+                 label-width="120px" size="small">
+            <el-form-item label="目录" v-if="addOrEditParams.parentId != 0">
+                <span>{{getMenuName(addOrEditParams.parentId)}}</span>
+            </el-form-item>
+            <el-form-item label="菜单编码">
+                <el-input v-model="addOrEditParams.menuCode" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="菜单名称">
+                <el-input v-model="addOrEditParams.menuName" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="菜单URL">
+                <el-input v-model="addOrEditParams.url" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="类型">
+                <el-radio-group v-model="addOrEditParams.type">
+                    <el-radio v-for="item in typeSelectList" :label="item.value">{{item.text}}</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="菜单图标">
+                <el-input v-model="addOrEditParams.icon" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="排序">
+                <el-input-number v-model="addOrEditParams.sort" :min="0" style="width: 160px !important;"></el-input-number>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input v-model="addOrEditParams.remark" type="textarea" :autosize="{ minRows: 5, maxRows: 100}"></el-input>
+            </el-form-item>
+            <template v-if="!isCreate">
+                <el-form-item label="是否删除">
+                    <span :class="detail.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(detail.deleted)}}</span>
+                </el-form-item>
+                <el-form-item label="创建人">
+                    <span>{{detail.createUser}}</span>
+                </el-form-item>
+                <el-form-item label="修改人">
+                    <span>{{detail.updateUser}}</span>
+                </el-form-item>
+                <el-form-item label="创建时间">
+                    <span>{{detail.createTime | formatDateTime}}</span>
+                </el-form-item>
+                <el-form-item label="更新时间">
+                    <span>{{detail.updateTime | formatDateTime}}</span>
+                </el-form-item>
+            </template>
+            <el-button @click="save" type="primary" icon="el-icon-document" size="small">{{isCreate ? '创建' : '保存'}}</el-button>
+        </el-form>
+    </el-drawer>
+    <el-drawer title="菜单详情" :before-close="resetTreeBtnClick" :visible.sync="detailDialogVisible" direction="rtl" size="600px"
+               v-if="permissions['sys:menu:add'] || permissions['sys:menu:update']">
+        <el-form ref="addOrEditParams" :model="addOrEditParams" label-position="left" label-width="120px" size="small">
+            <el-form-item label="目录" v-if="addOrEditParams.parentId != 0">
+                <span>{{getMenuName(detail.parentId)}}</span>
+            </el-form-item>
+            <el-form-item label="菜单编码">
+                <span>{{detail.menuCode}}</span>
+            </el-form-item>
+            <el-form-item label="菜单名称">
+                <span>{{detail.menuName}}</span>
+            </el-form-item>
+            <el-form-item label="菜单URL">
+                <span>{{detail.url}}</span>
+            </el-form-item>
+            <el-form-item label="类型">
+                <span>{{getTypeText(detail.type)}}</span>
+            </el-form-item>
+            <el-form-item label="菜单图标">
+                <span>{{detail.icon}}</span>
+            </el-form-item>
+            <el-form-item label="排序">
+                <span>{{detail.sort}}</span>
+            </el-form-item>
+            <el-form-item label="备注">
+                <span>{{detail.remark}}</span>
+            </el-form-item>
+            <el-form-item label="是否删除">
+                <span :class="detail.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(detail.deleted)}}</span>
+            </el-form-item>
+            <el-form-item label="创建人">
+                <span>{{detail.createUser}}</span>
+            </el-form-item>
+            <el-form-item label="修改人">
+                <span>{{detail.updateUser}}</span>
+            </el-form-item>
+            <el-form-item label="创建时间">
+                <span>{{detail.createTime | formatDateTime}}</span>
+            </el-form-item>
+            <el-form-item label="更新时间">
+                <span>{{detail.updateTime | formatDateTime}}</span>
+            </el-form-item>
+            <el-button @click="edit(detail, false)" v-if="permissions['sys:menu:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
+        </el-form>
+    </el-drawer>
+    <el-drawer :title="'编辑权限 (' + detail.menuName + ')'" :before-close="resetTreeBtnClick" :visible.sync="permissionsDialogVisible" direction="rtl" size="600px"
+               v-if="permissions['sys:menu:permission']">
+        <div class="operate-btn-group">
+            <el-button @click="savePermissions" type="primary" icon="el-icon-document" size="small">保存权限</el-button>
+        </div>
+        <template v-if="permissionTreeData && permissionTreeData.length > 0">
+            <el-tree :data="permissionTreeData" ref="permissionTree" :default-checked-keys="roleMenuPermissionIds"
+                     node-key="permissionId" default-expand-all show-checkbox :expand-on-click-node="false" :highlight-current="true"
+                     class="custom-tree" style="max-height: calc(100vh - 140px); overflow: auto">
+                <span class="custom-tree-node" slot-scope="{ node, data }">
+                    <span :class="data.deleted == 0 ? '' : 'text-danger disabled'">{{ data.permissionName }}</span>
+                </span>
+            </el-tree>
+        </template>
+        <el-alert title="暂无数据" type="warning" :closable="false" v-else></el-alert>
+    </el-drawer>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/element-ui.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            viewPermission: 'sys:menu:view',
+            permissions: {
+                'sys:menu:view': false,
+                'sys:menu:add': false,
+                'sys:menu:del': false,
+                'sys:menu:update': false,
+                'sys:menu:disable': false,
+                'sys:menu:enable': false,
+                'sys:menu:export': false,
+                'sys:menu:permission': false,
+            },
+            deletedSelectList: [{
+                value: 0, text: '有效'
+            }, {
+                value: 1, text: '无效'
+            }],
+            typeSelectList: [],
+            pkParams: {
+                menuId: '',
+                copy: false
+            },
+            searchParams: {},
+            sortParams: {
+                sortSort: sortEnum.ASC
+            },
+            multipleSelection: [],
+            treeData: [],
+            listMap: {},
+            addOrEditParams: {
+                menuId: '',
+                parentId: '',
+                parentName: '',
+                menuCode: '',
+                menuName: '',
+                url: '',
+                type: '',
+                icon: '',
+                sort: '',
+                remark: '',
+            },
+            detail: {
+                menuId: '',
+                parentId: '',
+                menuCode: '',
+                menuName: '',
+                url: '',
+                type: '',
+                icon: '',
+                sort: '',
+                remark: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            treeBtnClick: false,
+            isCreate: true,
+            addOrEditDialogVisible: false,
+            permissionsDialogVisible: false,
+            detailDialogVisible: false,
+
+            permissionTypeSelectList: [],
+            permissionDataGroup: {},
+            permissionTreeData: [],
+            roleMenuPermissionIds: [],
+            newRoleMenuPermissionIds: [],
+        },
+        mounted: function () {
+            let self = this;
+            self.validatePermissions(self.permissions, self.viewPermission, () => {
+                self.initTypeSelectList();
+                self.search();
+
+                self.initPermissionTypeSelectList();
+                self.getPermissionList();
+            });
+        },
+        methods: {
+            handleNodeClick: function (data) {
+                let self = this;
+                if (self.treeBtnClick) return;
+                self.detailDialogVisible = true;
+                self.detail = data;
+            },
+            handleCheckChange: function (data, checked, indeterminate) {
+                let self = this;
+                self.multipleSelection = self.$refs['navMenuTree'].getCheckedNodes()
+            },
+            getData: function (list) {
+                let self = this;
+                let group = {};
+                list.forEach(item => {
+                    let key = item.parentId;
+                    self.listMap[item.menuId] = item;
+                    let valArr = group[key] || [];
+                    valArr.push(item);
+                    group[key] = valArr;
+                });
+                for (let key in group) {
+                    group[key].forEach(item => {
+                        if (item.type == 0) {
+                            item.children = group[item.menuId];
+                        }
+                    });
+                    self.treeData = group[0];
+                }
+            },
+            search: function () {
+                let self = this;
+                self.checkedList = [];
+
+                let params = {
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+
+                let url = '/menu/list';
+                self.ajaxPost(url, params, '获取菜单列表失败！', response => {
+                    self.getData(response.data);
+                });
+            },
+            add: function (item) {
+                let self = this;
+                self.resetSave();
+                self.treeBtnClick = true;
+                if (item) {
+                    self.addOrEditParams.parentId = item.menuId;
+                    self.addOrEditParams.parentName = item.menuName;
+                    self.addOrEditParams.sort = item.children ? item.children.length + 1 : 1;
+                }
+                self.addOrEditDialogVisible = true;
+            },
+            edit: function (item, copy) {
+                let self = this;
+                self.resetSave();
+                self.treeBtnClick = true;
+                self.isCreate = copy;
+                self.addOrEditDialogVisible = true;
+                self.pkParams.menuId = item.menuId;
+                self.pkParams.copy = copy;
+                self.detail = item;
+
+                if (!copy) {
+                    self.addOrEditParams.menuId = item.menuId;
+                }
+                self.addOrEditParams.parentId = item.parentId;
+                self.addOrEditParams.menuCode = item.menuCode;
+                self.addOrEditParams.menuName = item.menuName;
+                self.addOrEditParams.url = item.url;
+                self.addOrEditParams.type = item.type + '';
+                self.addOrEditParams.icon = item.icon;
+                self.addOrEditParams.sort = item.sort;
+                self.addOrEditParams.remark = item.remark;
+                self.addOrEditParams.deleted = item.deleted;
+            },
+            save: function () {
+                let self = this;
+                let ajaxUrl;
+                if (self.pkParams.copy || (self.pkParams.menuId == '')) {
+                    ajaxUrl = '/menu/add';
+                } else {
+                    ajaxUrl = '/menu/update';
+                }
+
+                self.ajaxPost(ajaxUrl, self.addOrEditParams, '操作失败！', response => {
+                    self.$notify({
+                        message: '操作成功！',
+                        type: 'success'
+                    });
+                    self.resetSave();
+                    self.resetTreeBtnClick();
+                    setTimeout(self.search, 1000);
+                });
+            },
+            resetSave: function () {
+                let self = this;
+                self.pkParams.menuId = '';
+                self.addOrEditParams.menuId = '';
+                self.addOrEditParams.parentId = 0;
+                self.addOrEditParams.menuCode = '';
+                self.addOrEditParams.menuName = '';
+                self.addOrEditParams.url = '';
+                self.addOrEditParams.type = '';
+                self.addOrEditParams.icon = '';
+                self.addOrEditParams.sort = '';
+                self.addOrEditParams.remark = '';
+                self.isCreate = true;
+                self.addOrEditDialogVisible = false;
+            },
+            resetTreeBtnClick: function (done) {
+                let self = this;
+                self.treeBtnClick = false;
+                if (done) done();
+            },
+            enableSelected: function () {
+                this.execSelected("确定启用吗？", '/menu/enable', "启用成功！", "启用失败！");
+            },
+            disableSelected: function () {
+                this.execSelected("确定禁用吗？", '/menu/disable', "禁用成功！", "禁用失败！");
+            },
+            delSelected: function () {
+                this.execSelected("确定删除吗？", '/menu/delete', "删除成功！", "删除失败！");
+            },
+            execSelected: function (confirmMsg, url, successMsg, failMsg) {
+                let self = this;
+                let params = {
+                    menuIdList: self.multipleSelection.map(item => item.menuId)
+                };
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => self.search());
+            },
+            enable: function (item) {
+                this.exec(item, '/menu/enable', '确定启用吗？', '启用成功！', '启用失败！');
+            },
+            disable: function (item) {
+                this.exec(item, '/menu/disable', '确定禁用吗？', '禁用成功！', '禁用失败！');
+            },
+            del: function (item) {
+                this.exec(item, '/menu/delete', '确定删除吗？', '删除成功！', '删除失败！');
+            },
+            exec: function (item, url, confirmMsg, successMsg, failMsg) {
+                let self = this;
+                let params = self.getPkParams(item);
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => {
+                    self.search();
+                }, response => {}, self.resetTreeBtnClick);
+            },
+            configPermission: function (item) {
+                let self = this;
+                self.detail = item;
+                self.treeBtnClick = true;
+                self.permissionsDialogVisible = true;
+                self.getMenuPermissionIdList();
+            },
+            getPkParams: function (item) {
+                return {
+                    menuId: item.menuId
+                };
+            },
+            getMenuName: function (id) {
+                let self = this;
+                if (id) {
+                    let menu = self.listMap[id];
+                    if (menu) return menu.menuName;
+                }
+                return '';
+            },
+            getDeletedText: function (value) {
+                let self = this;
+                let entity = self.deletedSelectList.find(item => item.value == value);
+                return entity ? entity.text : '';
+            },
+            getType: function (value) {
+                return this.typeSelectList.find(item => item.value == value);
+            },
+            getTypeText: function (value) {
+                let entity = this.getType(value);
+                return entity ? entity.text : '';
+            },
+            initTypeSelectList: function () {
+                let self = this;
+                let url = '/option/list';
+                let params = {
+                    condition: {
+                        source: 'sys_menu_type',
+                        deleted: '0'
+                    },
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取类型列表失败！', response => {
+                    self.typeSelectList = response.data;
+                });
+            },
+            exportExcel: function () {
+                let self = this;
+
+                let params = {
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+                let paramsStr = JSON.stringify(params, (key, value) => {
+                    if (value) return value;
+                    return undefined;
+                });
+                window.open('/menu/export?params=' + encodeURIComponent(paramsStr));
+            },
+
+            getPermissionList: function () {
+                let self = this;
+                self.checkedList = [];
+
+                let params = {
+                    condition: {
+                        deleted: 0
+                    },
+                    order: {
+                        sortSort: sortEnum.ASC
+                    },
+                };
+
+                let url = '/permission/list';
+                self.ajaxPost(url, params, '获取权限列表失败！', response => {
+                    self.getPermissionData(response.data);
+                });
+            },
+            getMenuPermissionIdList: function () {
+                let self = this;
+                let params = {
+                    condition: {
+                        menuId: self.detail.menuId
+                    }
+                };
+                let url = '/menu-permission/list';
+                self.ajaxPost(url, params, '获取权限列表失败！', response => {
+                    self.roleMenuPermissionIds = response.data.map(item => item.permissionId);
+                    self.$refs["permissionTree"].setCheckedKeys([...self.roleMenuPermissionIds]);
+                });
+            },
+            getPermissionData: function (list) {
+                let self = this;
+                let group = {};
+                list.forEach(item => {
+                    let key = item.parentId;
+                    let valArr = group[key] || [];
+                    valArr.push(item);
+                    group[key] = valArr;
+                });
+                self.permissionDataGroup = group;
+                for (let key in group) {
+                    group[key].forEach(item => {
+                        if (item.type == 0) {
+                            item.children = group[item.permissionId];
+                        }
+                    });
+                    self.permissionTreeData = group[0];
+                }
+            },
+            savePermissions: function () {
+                let self = this;
+                self.newRoleMenuPermissionIds = self.$refs["permissionTree"].getCheckedKeys();
+                let addPermissionIds = self.newRoleMenuPermissionIds.filter(item => self.roleMenuPermissionIds.indexOf(item) === -1);
+                let delPermissionIds = self.roleMenuPermissionIds.filter(item => self.newRoleMenuPermissionIds.indexOf(item) === -1);
+
+                let ajaxUrl = '/menu-permission/batch-save';
+                let params = {
+                    mainId: self.detail.menuId,
+                    addIdList: addPermissionIds,
+                    delIdList: delPermissionIds
+                };
+                self.ajaxPost(ajaxUrl, params, '操作失败！', response => {
+                    self.$notify({
+                        type: 'success',
+                        message: '保存成功'
+                    });
+                    self.roleMenuPermissionIds = self.newRoleMenuPermissionIds;
+                });
+            },
+            getPermissionType: function (value) {
+                return this.permissionTypeSelectList.find(item => item.value == value);
+            },
+            getPermissionTypeText: function (value) {
+                let entity = this.getPermissionType(value);
+                return entity ? entity.text : '';
+            },
+            initPermissionTypeSelectList: function () {
+                let self = this;
+                let url = '/option/list';
+                let params = {
+                    condition: {
+                        source: 'sys_permission_type',
+                        deleted: '0'
+                    },
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取类型列表失败！', response => {
+                    self.permissionTypeSelectList = response.data;
+                });
+            },
+        }
+    });
+
+</script>
+</body>
+</html>

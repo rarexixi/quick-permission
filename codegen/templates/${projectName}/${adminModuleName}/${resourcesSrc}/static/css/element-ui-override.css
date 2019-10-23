@@ -1,0 +1,83 @@
+.el-form-item .el-form-item__content > div {
+    width: 100% !important;
+}
+
+.el-form .el-col {
+    height: 50px;
+}
+
+.operate-btn-group {
+    margin-bottom: 15px;
+}
+
+.el-table .el-button + .el-button {
+    margin-left: 6px;
+}
+
+.el-table th {
+    padding: 7px 0 !important;
+}
+
+.el-table td {
+    padding: 6px 0 !important;
+}
+
+.el-table--small th {
+    padding: 6px 0 !important;
+}
+
+.el-table--small td {
+    padding: 5px 0 !important;
+}
+
+.el-table__header th {
+    background-color: #545c64;
+    color: #ffffff;
+}
+
+.el-table__row:nth-child(2n) {
+    background-color: #d9e0e8;
+}
+
+.el-pagination {
+    margin-top: 15px;
+    text-align: right;
+}
+
+.el-dialog {
+    width: 90% !important;
+}
+
+.dialog-detail {
+    line-height: 2rem;
+}
+
+.dialog-detail pre {
+    line-height: 1.2rem;
+}
+
+.dialog-detail label {
+    font-weight: bold;
+}
+
+.dialog-detail .el-form-item {
+    margin-bottom: 0 !important;
+}
+
+.dialog-detail .el-form-item + .el-form-item {
+    border-top: 1px solid #eaeaea;
+}
+
+.dialog-detail > .dialog-footer {
+    margin-top: 10px;
+}
+
+.el-breadcrumb {
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #ecf2f9;
+}
+
+.el-divider--horizontal {
+    margin: 15px 0px !important;
+}

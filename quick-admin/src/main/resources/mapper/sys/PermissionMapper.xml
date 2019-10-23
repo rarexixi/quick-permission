@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 默认生成的的sql，不要修改！！！ -->
+<mapper namespace="org.xi.quick.sys.mapper.PermissionMapper">
+
+    <resultMap id="BaseResultMap" type="org.xi.quick.sys.models.entity.PermissionEntity">
+        <result property="permissionId" column="permission_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="permissionCode" column="permission_code"/>
+        <result property="permissionName" column="permission_name"/>
+        <result property="type" column="type"/>
+        <result property="remark" column="remark"/>
+        <result property="deleted" column="deleted"/>
+        <result property="createUser" column="create_user"/>
+        <result property="updateUser" column="update_user"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <parameterMap id="BaseParameterMap" type="org.xi.quick.sys.models.entity.PermissionEntity"></parameterMap>
+    <parameterMap id="BaseConditionMap" type="org.xi.quick.sys.models.condition.PermissionCondition"></parameterMap>
+
+    <sql id="tableName">`sys_permission`</sql>
+    <sql id="selectCondition">
+        <trim prefixOverrides="AND|OR">
+                <if test="condition.permissionId != null">
+                    AND `permission_id` = #{condition.permissionId}
+                </if>
+                <if test="condition.permissionIdList != null and condition.permissionIdList.size() > 0">
+                    AND `permission_id` in
+                    <foreach collection="condition.permissionIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.permissionIdMin != null">
+                    <![CDATA[
+                    AND `permission_id` >= #{condition.permissionIdMin}
+                    ]]>
+                </if>
+                <if test="condition.permissionIdMax != null">
+                    <![CDATA[
+                    AND `permission_id` <= #{condition.permissionIdMax}
+                    ]]>
+                </if>
+                <if test="condition.parentId != null">
+                    AND `parent_id` = #{condition.parentId}
+                </if>
+                <if test="condition.parentIdList != null and condition.parentIdList.size() > 0">
+                    AND `parent_id` in
+                    <foreach collection="condition.parentIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.parentIdMin != null">
+                    <![CDATA[
+                    AND `parent_id` >= #{condition.parentIdMin}
+                    ]]>
+                </if>
+                <if test="condition.parentIdMax != null">
+                    <![CDATA[
+                    AND `parent_id` <= #{condition.parentIdMax}
+                    ]]>
+                </if>
+                <if test="condition.permissionCode != null and condition.permissionCode != ''">
+                    AND `permission_code` = #{condition.permissionCode}
+                </if>
+                <if test="condition.permissionCodeList != null and condition.permissionCodeList.size() > 0">
+                    AND `permission_code` in
+                    <foreach collection="condition.permissionCodeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.permissionCodeIsEmpty != null and condition.permissionCodeIsEmpty == true">
+                    AND `permission_code` = ''
+                </if>
+                <if test="condition.permissionCodeStartWith != null and condition.permissionCodeStartWith != ''">
+                    AND `permission_code` LIKE concat(#{condition.permissionCodeStartWith}, '%')
+                </if>
+                <if test="condition.permissionCodeContains != null and condition.permissionCodeContains != ''">
+                    AND `permission_code` LIKE concat('%', #{condition.permissionCodeContains}, '%')
+                </if>
+                <if test="condition.permissionName != null and condition.permissionName != ''">
+                    AND `permission_name` = #{condition.permissionName}
+                </if>
+                <if test="condition.permissionNameList != null and condition.permissionNameList.size() > 0">
+                    AND `permission_name` in
+                    <foreach collection="condition.permissionNameList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.permissionNameIsEmpty != null and condition.permissionNameIsEmpty == true">
+                    AND `permission_name` = ''
+                </if>
+                <if test="condition.permissionNameStartWith != null and condition.permissionNameStartWith != ''">
+                    AND `permission_name` LIKE concat(#{condition.permissionNameStartWith}, '%')
+                </if>
+                <if test="condition.permissionNameContains != null and condition.permissionNameContains != ''">
+                    AND `permission_name` LIKE concat('%', #{condition.permissionNameContains}, '%')
+                </if>
+                <if test="condition.type != null">
+                    AND `type` = #{condition.type}
+                </if>
+                <if test="condition.typeList != null and condition.typeList.size() > 0">
+                    AND `type` in
+                    <foreach collection="condition.typeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.typeMin != null">
+                    <![CDATA[
+                    AND `type` >= #{condition.typeMin}
+                    ]]>
+                </if>
+                <if test="condition.typeMax != null">
+                    <![CDATA[
+                    AND `type` <= #{condition.typeMax}
+                    ]]>
+                </if>
+                <if test="condition.deleted != null">
+                    AND `deleted` = #{condition.deleted}
+                </if>
+                <if test="condition.createUser != null">
+                    AND `create_user` = #{condition.createUser}
+                </if>
+                <if test="condition.createUserList != null and condition.createUserList.size() > 0">
+                    AND `create_user` in
+                    <foreach collection="condition.createUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.createUserMin != null">
+                    <![CDATA[
+                    AND `create_user` >= #{condition.createUserMin}
+                    ]]>
+                </if>
+                <if test="condition.createUserMax != null">
+                    <![CDATA[
+                    AND `create_user` <= #{condition.createUserMax}
+                    ]]>
+                </if>
+                <if test="condition.updateUser != null">
+                    AND `update_user` = #{condition.updateUser}
+                </if>
+                <if test="condition.updateUserList != null and condition.updateUserList.size() > 0">
+                    AND `update_user` in
+                    <foreach collection="condition.updateUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.updateUserMin != null">
+                    <![CDATA[
+                    AND `update_user` >= #{condition.updateUserMin}
+                    ]]>
+                </if>
+                <if test="condition.updateUserMax != null">
+                    <![CDATA[
+                    AND `update_user` <= #{condition.updateUserMax}
+                    ]]>
+                </if>
+                <if test="condition.createTimeList != null and condition.createTimeList.size() > 0">
+                    AND `create_time` in
+                    <foreach collection="condition.createTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.createTimeMin != null">
+                    <![CDATA[
+                    AND `create_time` >= #{condition.createTimeMin}
+                    ]]>
+                </if>
+                <if test="condition.createTimeMax != null">
+                    <![CDATA[
+                    AND `create_time` <= #{condition.createTimeMax}
+                    ]]>
+                </if>
+                <if test="condition.updateTimeList != null and condition.updateTimeList.size() > 0">
+                    AND `update_time` in
+                    <foreach collection="condition.updateTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.updateTimeMin != null">
+                    <![CDATA[
+                    AND `update_time` >= #{condition.updateTimeMin}
+                    ]]>
+                </if>
+                <if test="condition.updateTimeMax != null">
+                    <![CDATA[
+                    AND `update_time` <= #{condition.updateTimeMax}
+                    ]]>
+                </if>
+        </trim>
+    </sql>
+
+    <sql id="where">
+        <if test="condition != null">
+            <where>
+                <include refid="selectCondition"/>
+            </where>
+        </if>
+    </sql>
+    <sql id="listWhere">
+        <if test="conditionList != null and conditionList.size() > 0">
+            <where>
+                <foreach collection="conditionList" item="condition" open="(" close=")" separator=" OR ">
+                    (<include refid="selectCondition"/>)
+                </foreach>
+            </where>
+        </if>
+    </sql>
+    <sql id="orderBy">
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.permissionIdSort != null">
+                    <choose>
+                        <when test="order.permissionIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `permission_id` ASC,
+                        </when>
+                        <otherwise>
+                            `permission_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.parentIdSort != null">
+                    <choose>
+                        <when test="order.parentIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `parent_id` ASC,
+                        </when>
+                        <otherwise>
+                            `parent_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.permissionCodeSort != null">
+                    <choose>
+                        <when test="order.permissionCodeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `permission_code` ASC,
+                        </when>
+                        <otherwise>
+                            `permission_code` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.permissionNameSort != null">
+                    <choose>
+                        <when test="order.permissionNameSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `permission_name` ASC,
+                        </when>
+                        <otherwise>
+                            `permission_name` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.typeSort != null">
+                    <choose>
+                        <when test="order.typeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `type` ASC,
+                        </when>
+                        <otherwise>
+                            `type` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.deletedSort != null">
+                    <choose>
+                        <when test="order.deletedSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `deleted` ASC,
+                        </when>
+                        <otherwise>
+                            `deleted` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createUserSort != null">
+                    <choose>
+                        <when test="order.createUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `create_user` ASC,
+                        </when>
+                        <otherwise>
+                            `create_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateUserSort != null">
+                    <choose>
+                        <when test="order.updateUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `update_user` ASC,
+                        </when>
+                        <otherwise>
+                            `update_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createTimeSort != null">
+                    <choose>
+                        <when test="order.createTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `create_time` ASC,
+                        </when>
+                        <otherwise>
+                            `create_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateTimeSort != null">
+                    <choose>
+                        <when test="order.updateTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `update_time` ASC,
+                        </when>
+                        <otherwise>
+                            `update_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </sql>
+    <sql id="selectColumnList">
+        `permission_id`,
+        `parent_id`,
+        `permission_code`,
+        `permission_name`,
+        `type`,
+        `remark`,
+        `deleted`,
+        `create_user`,
+        `update_user`,
+        `create_time`,
+        `update_time`
+    </sql>
+    <sql id="updateColumnSet">
+        <set>
+            <if test="entity.parentId != null">
+                `parent_id` = #{entity.parentId},
+            </if>
+            <if test="entity.permissionCode != null">
+                `permission_code` = #{entity.permissionCode},
+            </if>
+            <if test="entity.permissionName != null">
+                `permission_name` = #{entity.permissionName},
+            </if>
+            <if test="entity.type != null">
+                `type` = #{entity.type},
+            </if>
+            <if test="entity.remark != null">
+                `remark` = #{entity.remark},
+            </if>
+            <if test="entity.deleted != null">
+                `deleted` = #{entity.deleted},
+            </if>
+            <if test="entity.createUser != null">
+                `create_user` = #{entity.createUser},
+            </if>
+            <if test="entity.updateUser != null">
+                `update_user` = #{entity.updateUser},
+            </if>
+            <if test="entity.createTime != null">
+                `create_time` = #{entity.createTime},
+            </if>
+            <if test="entity.updateTime != null">
+                `update_time` = #{entity.updateTime}
+            </if>
+        </set>
+    </sql>
+
+    <insert id="insert" parameterMap="BaseParameterMap" useGeneratedKeys="true" keyProperty="entity.permissionId">
+        insert into <include refid="tableName"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entity.permissionId != null">`permission_id`,</if>
+            <if test="entity.parentId != null">`parent_id`,</if>
+            <if test="entity.permissionCode != null">`permission_code`,</if>
+            <if test="entity.permissionName != null">`permission_name`,</if>
+            <if test="entity.type != null">`type`,</if>
+            <if test="entity.remark != null">`remark`,</if>
+            <if test="entity.deleted != null">`deleted`,</if>
+            <if test="entity.createUser != null">`create_user`,</if>
+            <if test="entity.updateUser != null">`update_user`,</if>
+            <if test="entity.createTime != null">`create_time`,</if>
+            <if test="entity.updateTime != null">`update_time`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entity.permissionId != null">#{entity.permissionId},</if>
+            <if test="entity.parentId != null">#{entity.parentId},</if>
+            <if test="entity.permissionCode != null">#{entity.permissionCode},</if>
+            <if test="entity.permissionName != null">#{entity.permissionName},</if>
+            <if test="entity.type != null">#{entity.type},</if>
+            <if test="entity.remark != null">#{entity.remark},</if>
+            <if test="entity.deleted != null">#{entity.deleted},</if>
+            <if test="entity.createUser != null">#{entity.createUser},</if>
+            <if test="entity.updateUser != null">#{entity.updateUser},</if>
+            <if test="entity.createTime != null">#{entity.createTime},</if>
+            <if test="entity.updateTime != null">#{entity.updateTime},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertList" parameterMap="BaseParameterMap">
+        <foreach collection="list" item="item" separator=";">
+            insert into <include refid="tableName"/>
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="item.permissionId != null">`permission_id`,</if>
+                <if test="item.parentId != null">`parent_id`,</if>
+                <if test="item.permissionCode != null">`permission_code`,</if>
+                <if test="item.permissionName != null">`permission_name`,</if>
+                <if test="item.type != null">`type`,</if>
+                <if test="item.remark != null">`remark`,</if>
+                <if test="item.deleted != null">`deleted`,</if>
+                <if test="item.createUser != null">`create_user`,</if>
+                <if test="item.updateUser != null">`update_user`,</if>
+                <if test="item.createTime != null">`create_time`,</if>
+                <if test="item.updateTime != null">`update_time`,</if>
+            </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="item.permissionId != null">#{item.permissionId},</if>
+                <if test="item.parentId != null">#{item.parentId},</if>
+                <if test="item.permissionCode != null">#{item.permissionCode},</if>
+                <if test="item.permissionName != null">#{item.permissionName},</if>
+                <if test="item.type != null">#{item.type},</if>
+                <if test="item.remark != null">#{item.remark},</if>
+                <if test="item.deleted != null">#{item.deleted},</if>
+                <if test="item.createUser != null">#{item.createUser},</if>
+                <if test="item.updateUser != null">#{item.updateUser},</if>
+                <if test="item.createTime != null">#{item.createTime},</if>
+                <if test="item.updateTime != null">#{item.updateTime},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+    <delete id="deleteByCondition" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </delete>
+
+    <delete id="deleteByConditionList" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </delete>
+
+    <update id="updateByCondition">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="where"/>
+    </update>
+
+    <update id="updateByConditionList">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="listWhere"/>
+    </update>
+
+    <select id="getByCondition" resultMap="BaseResultMap" parameterMap="BaseConditionMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="selectByConditionList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="listWhere"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="countByCondition" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="countByConditionList" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </select>
+</mapper>

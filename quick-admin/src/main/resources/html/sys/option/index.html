@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>系统选项管理</title>
+    <link rel="stylesheet" href="/css/element-ui.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/element-ui-override.css">
+</head>
+<body>
+<div id="app">
+    <el-breadcrumb separator="/">
+        <el-breadcrumb-item>系统选项管理</el-breadcrumb-item>
+        <el-breadcrumb-item>系统选项列表</el-breadcrumb-item>
+    </el-breadcrumb>
+    <div class="operate-btn-group">
+        <el-button @click="add()" v-if="permissions['sys:option:add']" type="primary" icon="el-icon-plus" size="small">添加</el-button>
+        <el-button @click="enableSelected" v-if="permissions['sys:option:enable'] && multipleSelection.length > 0" type="success" icon="el-icon-check" size="small">启用</el-button>
+        <el-button @click="disableSelected" v-if="permissions['sys:option:disable'] && multipleSelection.length > 0" type="warning" icon="el-icon-close" size="small">禁用</el-button>
+        <el-button @click="delSelected" v-if="permissions['sys:option:del'] && multipleSelection.length > 0" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+    </div>
+    <el-tree v-if="treeData && treeData.length > 0"
+             :data="treeData" ref="navMenuTree" @check-change="handleCheckChange" @node-click="handleNodeClick" node-key="id"
+             :default-expand-all="expandAll" :expand-on-click-node="false" :highlight-current="true"
+             :show-checkbox="permissions['sys:option:disable'] || permissions['sys:option:enable'] || permissions['sys:option:del']"
+             class="custom-tree" style="max-height: calc(100vh - 110px); overflow: auto">
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+            <span :class="data.deleted == 0 ? '' : 'text-danger disabled'">{{ data.text }} ({{ data.value }})</span>
+            <span class="custom-operation">
+                <el-tooltip effect="dark" :open-delay="500" content="添加" placement="top" v-if="permissions['sys:option:add'] && data.type == 0 && node.level < 3">
+                    <i @click="add(data)" class="text-primary el-icon-plus"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="编辑" placement="top" v-if="permissions['sys:option:update']">
+                    <i @click="edit(data, false)" class="text-primary el-icon-edit"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="复制" placement="top" v-if="permissions['sys:option:add']">
+                    <i @click="edit(data, true)" class="text-primary el-icon-document-copy"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="禁用" placement="top" v-if="permissions['sys:option:disable'] && data.deleted==0">
+                    <i @click="disable(data)" class="text-warning el-icon-close"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="启用" placement="top" v-else-if="permissions['sys:option:enable'] && data.deleted==1">
+                    <i @click="enable(data)" class="text-success el-icon-check"></i>
+                </el-tooltip>
+                <el-tooltip effect="dark" :open-delay="500" content="删除" placement="top" v-if="permissions['sys:option:del']">
+                    <i @click="del(data)" class="text-danger el-icon-delete"></i>
+                </el-tooltip>
+            </span>
+        </span>
+    </el-tree>
+    <el-alert title="暂无数据" type="warning" :closable="false" v-else></el-alert>
+
+    <el-drawer :title="isCreate ? '添加系统选项' : '编辑系统选项'" :before-close="resetTreeBtnClick" :visible.sync="addOrEditDialogVisible" direction="rtl" size="600px"
+               v-if="permissions['sys:option:add'] || permissions['sys:option:update']">
+        <el-form ref="addOrEditParams" :model="addOrEditParams" label-position="left" label-width="120px" size="small">
+            <el-form-item label="编码">
+                <el-input v-model="addOrEditParams.optionCode" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="值">
+                <el-input v-model="addOrEditParams.value" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="排序">
+                <el-input-number v-model="addOrEditParams.sort" :min="0" style="width: 160px !important;"></el-input-number>
+            </el-form-item>
+            <el-form-item label="展示文字">
+                <el-input v-model="addOrEditParams.text" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="类型">
+                <el-radio-group v-model="addOrEditParams.type">
+                    <el-radio v-for="item in typeSelectList" :label="item.value">{{item.text}}</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="是否系统内置">
+                <el-radio-group v-model="addOrEditParams.builtIn">
+                    <el-radio v-for="item in builtInSelectList" :label="item.value">{{item.text}}</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="扩展信息">
+                <el-input v-model="addOrEditParams.ext" type="textarea" :autosize="{ minRows: 5, maxRows: 100}"></el-input>
+            </el-form-item>
+            <template v-if="!isCreate">
+                <el-form-item label="是否删除">
+                    <span :class="detail.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(detail.deleted)}}</span>
+                </el-form-item>
+                <el-form-item label="创建人">
+                    <span>{{detail.createUser}}</span>
+                </el-form-item>
+                <el-form-item label="修改人">
+                    <span>{{detail.updateUser}}</span>
+                </el-form-item>
+                <el-form-item label="创建时间">
+                    <span>{{detail.createTime | formatDateTime}}</span>
+                </el-form-item>
+                <el-form-item label="更新时间">
+                    <span>{{detail.updateTime | formatDateTime}}</span>
+                </el-form-item>
+            </template>
+            <el-button @click="save" type="primary" icon="el-icon-document" size="small">{{isCreate ? '创建' : '保存'}}</el-button>
+        </el-form>
+    </el-drawer>
+    <el-drawer title="系统选项详情" :before-close="resetTreeBtnClick" :visible.sync="detailDialogVisible" direction="rtl" size="600px"
+               v-if="permissions['sys:option:add'] || permissions['sys:option:update']">
+        <el-form ref="addOrEditParams" :model="addOrEditParams" label-position="left" label-width="120px" size="small">
+            <el-form-item label="编码">
+                <span>{{detail.optionCode}}</span>
+            </el-form-item>
+            <el-form-item label="值">
+                <span>{{detail.value}}</span>
+            </el-form-item>
+            <el-form-item label="排序">
+                <span>{{detail.sort}}</span>
+            </el-form-item>
+            <el-form-item label="展示文字">
+                <span>{{detail.text}}</span>
+            </el-form-item>
+            <el-form-item label="类型">
+                <span>{{getTypeText(detail.type)}}</span>
+            </el-form-item>
+            <el-form-item label="是否系统内置">
+                <span>{{getBuiltInText(detail.builtIn)}}</span>
+            </el-form-item>
+            <el-form-item label="扩展信息">
+                <span>{{detail.ext}}</span>
+            </el-form-item>
+            <el-form-item label="是否删除">
+                <span :class="detail.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(detail.deleted)}}</span>
+            </el-form-item>
+            <el-form-item label="创建人">
+                <span>{{detail.createUser}}</span>
+            </el-form-item>
+            <el-form-item label="修改人">
+                <span>{{detail.updateUser}}</span>
+            </el-form-item>
+            <el-form-item label="创建时间">
+                <span>{{detail.createTime | formatDateTime}}</span>
+            </el-form-item>
+            <el-form-item label="更新时间">
+                <span>{{detail.updateTime | formatDateTime}}</span>
+            </el-form-item>
+            <el-form-item>
+                <el-button @click="edit(detail, false)" v-if="permissions['sys:permission:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
+            </el-form-item>
+        </el-form>
+    </el-drawer>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/element-ui.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            expandAll: false,
+            viewPermission: 'sys:option:view',
+            permissions: {
+                'sys:option:view': false,
+                'sys:option:add': false,
+                'sys:option:del': false,
+                'sys:option:update': false,
+                'sys:option:disable': false,
+                'sys:option:enable': false,
+                'sys:option:export': false,
+            },
+            deletedSelectList: [{
+                value: 0, text: '有效'
+            }, {
+                value: 1, text: '无效'
+            }],
+            typeSelectList: [],
+            builtInSelectList: [],
+            pkParams: {
+                id: '',
+                copy: false
+            },
+            searchParams: {},
+            sortParams: {
+                idSort: sortEnum.ASC
+            },
+            multipleSelection: [],
+            treeData: [],
+            listMap: {},
+            addOrEditParams: {
+                id: '',
+                optionCode: '',
+                value: '',
+                text: '',
+                sort: '',
+                parentId: '',
+                type: '',
+                builtIn: '',
+                ext: '',
+            },
+            detail: {
+                id: '',
+                optionCode: '',
+                value: '',
+                text: '',
+                sort: '',
+                parentId: '',
+                type: 0,
+                builtIn: '',
+                ext: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            treeBtnClick: false,
+            isCreate: true,
+            addOrEditDialogVisible: false,
+            detailDialogVisible: false
+        },
+        mounted: function () {
+            let self = this;
+            self.validatePermissions(self.permissions, self.viewPermission, () => {
+                self.initTypeSelectList();
+                self.initBuiltInSelectList();
+                self.search();
+            });
+        },
+        methods: {
+            handleNodeClick: function (data) {
+                let self = this;
+                if (self.treeBtnClick) return;
+                self.detailDialogVisible = true;
+                self.detail = data;
+            },
+            handleCheckChange: function (data, checked, indeterminate) {
+                let self = this;
+                self.multipleSelection = self.$refs['navMenuTree'].getCheckedNodes()
+            },
+            getData: function (list) {
+                let self = this;
+                let group = {};
+                list.forEach(item => {
+                    let key = item.parentId;
+                    self.listMap[item.id] = item;
+                    let valArr = group[key] || [];
+                    valArr.push(item);
+                    group[key] = valArr;
+                });
+                for (let key in group) {
+                    group[key].forEach(item => {
+                        if (item.type == 0) {
+                            item.children = group[item.id];
+                        }
+                    });
+                    self.treeData = group[0];
+                }
+            },
+            search: function () {
+                let self = this;
+                self.checkedList = [];
+
+                let params = {
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+
+                let url = '/option/list';
+                self.ajaxPost(url, params, '获取系统选项列表失败！', response => {
+                    self.getData(response.data);
+                });
+            },
+            add: function (item) {
+                let self = this;
+                self.resetSave();
+                self.treeBtnClick = true;
+                if (item) {
+                    self.addOrEditParams.parentId = item.id;
+                    self.addOrEditParams.optionCode = item.optionCode + ':';
+                    self.addOrEditParams.parentName = item.text;
+                    self.addOrEditParams.sort = item.children ? item.children.length + 1 : 1;
+                }
+                self.addOrEditDialogVisible = true;
+            },
+            edit: function (item, copy) {
+                let self = this;
+                self.resetSave();
+                self.treeBtnClick = true;
+                self.isCreate = copy;
+                self.addOrEditDialogVisible = true;
+                self.pkParams.id = item.id;
+                self.pkParams.copy = copy;
+                self.detail = item;
+
+                if (!copy) {
+                    self.addOrEditParams.id = item.id;
+                }
+                self.addOrEditParams.optionCode = item.optionCode;
+                self.addOrEditParams.value = item.value;
+                self.addOrEditParams.text = item.text;
+                self.addOrEditParams.sort = item.sort;
+                self.addOrEditParams.parentId = item.parentId;
+                self.addOrEditParams.type = item.type + '';
+                self.addOrEditParams.builtIn = item.builtIn + '';
+                self.addOrEditParams.ext = item.ext;
+                self.addOrEditParams.deleted = item.deleted;
+            },
+            save: function () {
+                let self = this;
+                let ajaxUrl;
+                if (self.pkParams.copy || (self.pkParams.id == '')) {
+                    ajaxUrl = '/option/add';
+                } else {
+                    ajaxUrl = '/option/update';
+                }
+
+                self.ajaxPost(ajaxUrl, self.addOrEditParams, '操作失败！', response => {
+                    self.$notify({
+                        message: '操作成功！',
+                        type: 'success'
+                    });
+                    self.resetSave();
+                    self.resetTreeBtnClick();
+                    setTimeout(self.search, 1000);
+                });
+            },
+            resetSave: function () {
+                let self = this;
+                self.pkParams.id = '';
+                self.addOrEditParams.id = '';
+                self.addOrEditParams.optionCode = '';
+                self.addOrEditParams.value = '';
+                self.addOrEditParams.text = '';
+                self.addOrEditParams.sort = '';
+                self.addOrEditParams.parentId = 0;
+                self.addOrEditParams.type = '';
+                self.addOrEditParams.builtIn = '';
+                self.addOrEditParams.ext = '';
+                self.isCreate = true;
+                self.addOrEditDialogVisible = false;
+            },
+            resetTreeBtnClick: function (done) {
+                let self = this;
+                self.treeBtnClick = false;
+                if (done) done();
+            },
+            enableSelected: function () {
+                this.execSelected("确定启用吗？", '/option/enable', "启用成功！", "启用失败！");
+            },
+            disableSelected: function () {
+                this.execSelected("确定禁用吗？", '/option/disable', "禁用成功！", "禁用失败！");
+            },
+            delSelected: function () {
+                this.execSelected("确定删除吗？", '/option/delete', "删除成功！", "删除失败！");
+            },
+            execSelected: function (confirmMsg, url, successMsg, failMsg) {
+                let self = this;
+                let params = {
+                    idList: self.multipleSelection.map(item => item.id)
+                };
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => self.search());
+            },
+            enable: function (item) {
+                this.exec(item, '/option/enable', '确定启用吗？', '启用成功！', '启用失败！');
+            },
+            disable: function (item) {
+                this.exec(item, '/option/disable', '确定禁用吗？', '禁用成功！', '禁用失败！');
+            },
+            del: function (item) {
+                this.exec(item, '/option/delete', '确定删除吗？', '删除成功！', '删除失败！');
+            },
+            exec: function (item, url, confirmMsg, successMsg, failMsg) {
+                let self = this;
+                let params = self.getPkParams(item);
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => {
+                    self.search();
+                }, response => {}, self.resetTreeBtnClick);
+            },
+            getPkParams: function (item) {
+                return {
+                    id: item.id
+                };
+            },
+            getDeletedText: function (value) {
+                let self = this;
+                let entity = self.deletedSelectList.find(item => item.value == value);
+                return entity ? entity.text : '';
+            },
+            getType: function (value) {
+                return this.typeSelectList.find(item => item.value == value);
+            },
+            getTypeText: function (value) {
+                let entity = this.getType(value);
+                return entity ? entity.text : '';
+            },
+            getBuiltIn: function (value) {
+                return this.builtInSelectList.find(item => item.value == value);
+            },
+            getBuiltInText: function (value) {
+                let entity = this.getType(value);
+                return entity ? entity.text : '';
+            },
+            initTypeSelectList: function () {
+                let self = this;
+                let url = '/option/list';
+                let params = {
+                    condition: {
+                        source: 'sys_option_type',
+                        deleted: '0'
+                    },
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取类型列表失败！', response => {
+                    self.typeSelectList = response.data;
+                });
+            },
+            initBuiltInSelectList: function () {
+                let self = this;
+                let url = '/option/list';
+                let params = {
+                    condition: {
+                        source: 'boolean',
+                        deleted: '0'
+                    },
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取类型列表失败！', response => {
+                    self.builtInSelectList = response.data;
+                });
+            },
+            exportExcel: function () {
+                let self = this;
+
+                let params = {
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+                let paramsStr = JSON.stringify(params, (key, value) => {
+                    if (value) return value;
+                    return undefined;
+                });
+                window.open('/option/export?params=' + encodeURIComponent(paramsStr));
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

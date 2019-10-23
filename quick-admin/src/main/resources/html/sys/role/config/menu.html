@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>菜单管理</title>
+    <link rel="stylesheet" href="/css/element-ui.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/element-ui-override.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="operate-btn-group">
+        <el-button @click="save" type="primary" icon="el-icon-document" size="small">保存</el-button>
+    </div>
+    <template v-if="treeData && treeData.length > 0">
+        <el-switch v-model="checkCascade" active-text="及联选择" inactive-text="独立选择" style="margin-bottom: 10px"></el-switch>
+        <el-tree :data="treeData" ref="navMenuTree" :default-checked-keys="roleMenuIds" @node-click="handleNodeClick"
+                 node-key="menuId" default-expand-all show-checkbox :expand-on-click-node="false" :highlight-current="true"
+                 :check-strictly="!checkCascade"
+                 class="custom-tree" style="max-height: calc(100vh - 80px); overflow: auto">
+            <span class="custom-tree-node" slot-scope="{ node, data }">
+                <span :class="data.deleted == 0 ? '' : 'text-danger disabled'">{{ data.menuName }}</span>
+            </span>
+        </el-tree>
+    </template>
+    <el-alert title="暂无数据" type="warning" :closable="false" v-else></el-alert>
+
+    <el-drawer title="菜单详情" :visible.sync="detailDialogVisible" v-if="permissions['sys:menu:view']" direction="rtl" size="600px">
+        <el-form label-position="left" label-width="100px" size="small">
+            <el-form-item label="菜单名称">
+                <span>{{menuDetail.menuName}}</span>
+            </el-form-item>
+            <el-form-item label="类型">
+                <span>{{getMenuTypeText(menuDetail.type)}}</span>
+            </el-form-item>
+            <el-form-item label="菜单图标">
+                <span>{{menuDetail.icon}}</span>
+            </el-form-item>
+            <el-form-item label="菜单URL">
+                <span>{{menuDetail.url}}</span>
+            </el-form-item>
+        </el-form>
+    </el-drawer>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/element-ui.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            checkCascade: false,
+            viewPermission: 'sys:role:menu',
+            permissions: {
+                'sys:role:menu': false,
+                'sys:menu:view': false,
+            },
+            deletedSelectList: [{
+                value: 0, text: '有效'
+            }, {
+                value: 1, text: '无效'
+            }],
+            menuTypeSelectList: [],
+            roleId: '',
+            dataGroup: {},
+            treeData: [],
+            roleDetail: {
+                roleId: '',
+                roleCode: '',
+                roleName: '',
+                remark: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            menuDetail: {
+                menuId: '',
+                parentId: '',
+                menuCode: '',
+                menuName: '',
+                url: '',
+                type: '',
+                icon: '',
+                sort: '',
+                remark: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            roleMenuIds: [],
+            newRoleMenuIds: [],
+
+            detailDialogVisible: false,
+        },
+        mounted: function () {
+            let self = this;
+
+            self.validatePermissions(self.permissions, self.viewPermission, () => {
+                self.roleId = commonFun.getParam('roleId');
+                self.initTypeSelectList();
+                self.getMenuList();
+                self.getRoleMenuIdList();
+            });
+        },
+        methods: {
+            getRoleMenuIdList: function () {
+                let self = this;
+                let params = {
+                    condition: {
+                        roleId: self.roleId
+                    }
+                };
+                let url = '/role-menu/list';
+                self.ajaxPost(url, params, '获取角色菜单列表失败！', response => {
+                    self.roleMenuIds = response.data.map(item => item.menuId);
+                });
+            },
+            getMenuList: function () {
+                let self = this;
+                self.checkedList = [];
+
+                let params = {
+                    condition: {
+                        deleted: 0
+                    },
+                    order: {
+                        sortSort: sortEnum.ASC
+                    },
+                };
+
+                let url = '/menu/list';
+                self.ajaxPost(url, params, '获取菜单列表失败！', response => {
+                    self.getData(response.data);
+                });
+            },
+            getData: function (list) {
+                let self = this;
+                let group = {};
+                list.forEach(item => {
+                    let key = item.parentId;
+                    let valArr = group[key] || [];
+                    valArr.push(item);
+                    group[key] = valArr;
+                });
+                self.dataGroup = group;
+                for (let key in group) {
+                    group[key].forEach(item => {
+                        if (item.type == 0) {
+                            item.children = group[item.menuId];
+                        }
+                    });
+                    self.treeData = group[0];
+                }
+            },
+            save: function () {
+                let self = this;
+                self.newRoleMenuIds = [...self.$refs["navMenuTree"].getCheckedKeys(), ...self.$refs["navMenuTree"].getHalfCheckedKeys()];
+                let addMenuIds = self.newRoleMenuIds.filter(item => self.roleMenuIds.indexOf(item) === -1);
+                let delMenuIds = self.roleMenuIds.filter(item => self.newRoleMenuIds.indexOf(item) === -1);
+
+                let ajaxUrl = '/role-menu/batch-save';
+                let params = {
+                    mainId: self.roleId,
+                    addIdList: addMenuIds,
+                    delIdList: delMenuIds
+                };
+                self.ajaxPost(ajaxUrl, params, '操作失败！', response => {
+                    self.$notify({
+                        type: 'success',
+                        message: '保存成功'
+                    });
+                    self.roleMenuIds = self.newRoleMenuIds;
+                });
+            },
+            handleNodeClick: function (data) {
+                let self = this;
+                self.menuDetail = data;
+                self.detailDialogVisible = true;
+            },
+            getMenuType: function (value) {
+                return this.menuTypeSelectList.find(item => item.value == value);
+            },
+            getMenuTypeText: function (value) {
+                let entity = this.getMenuType(value);
+                return entity ? entity.text : '';
+            },
+            initTypeSelectList: function () {
+                let self = this;
+                let url = '/option/list';
+                let params = {
+                    condition: {
+                        source: 'sys_menu_type',
+                        deleted: '0'
+                    },
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取类型列表失败！', response => {
+                    self.menuTypeSelectList = response.data;
+                });
+            },
+        }
+    });
+
+</script>
+</body>
+</html>

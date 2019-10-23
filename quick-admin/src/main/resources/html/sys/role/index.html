@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>角色管理</title>
+    <link rel="stylesheet" href="/css/element-ui.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/element-ui-override.css">
+    <style>
+        .el-drawer__body iframe {
+            width: 100%;
+            height: calc(100% - 5px);
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-breadcrumb separator="/">
+        <el-breadcrumb-item>角色管理</el-breadcrumb-item>
+        <el-breadcrumb-item>角色列表</el-breadcrumb-item>
+    </el-breadcrumb>
+    <el-form ref="searchParams" class="search-form" :model="searchParams" label-position="left" size="small" label-width="120px">
+        <el-row :gutter="10">
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="6">
+                <el-form-item label="角色ID">
+                    <el-input v-model="searchParams.roleId" type="text"></el-input>
+                </el-form-item>
+            </el-col>
+            <el-col :span="24">
+                <el-form-item>
+                    <el-button @click="search" type="primary" icon="el-icon-search">搜索</el-button>
+                    <el-button @click="resetSearch" type="warning" icon="el-icon-refresh">重置</el-button>
+                    <el-button @click="exportExcel" v-if="permissions['sys:role:export']" type="success" icon="el-icon-download">导出</el-button>
+                </el-form-item>
+            </el-col>
+        </el-row>
+    </el-form>
+    <el-tabs v-model="searchParams.deleted" @tab-click="search">
+        <el-tab-pane name="null" label="全部"></el-tab-pane>
+        <el-tab-pane name="0" label="有效"></el-tab-pane>
+        <el-tab-pane name="1" label="无效"></el-tab-pane>
+    </el-tabs>
+    <div class="operate-btn-group">
+        <el-button @click="add" v-if="permissions['sys:role:add']" type="primary" icon="el-icon-plus" size="small">添加</el-button>
+        <el-button @click="enableSelected" v-if="permissions['sys:role:enable'] && multipleSelection.length > 0" type="success" icon="el-icon-check" size="small">启用</el-button>
+        <el-button @click="disableSelected" v-if="permissions['sys:role:disable'] && multipleSelection.length > 0" type="warning" icon="el-icon-close" size="small">禁用</el-button>
+        <el-button @click="delSelected" v-if="permissions['sys:role:del'] && multipleSelection.length > 0" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+    </div>
+    <template v-if="pageInfo && pageInfo.list && pageInfo.list.length > 0">
+        <el-table ref="multipleTable" :data="pageInfo.list" tooltip-effect="dark" @sort-change="handleSortChange" @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column label="角色ID" prop="roleId" sortable="custom">
+                <template slot-scope="scope">{{scope.row.roleId}}</template>
+            </el-table-column>
+            <el-table-column label="角色编码" prop="roleCode">
+                <template slot-scope="scope">{{scope.row.roleCode}}</template>
+            </el-table-column>
+            <el-table-column label="角色名称" prop="roleName">
+                <template slot-scope="scope">{{scope.row.roleName}}</template>
+            </el-table-column>
+            <el-table-column label="是否内置角色" prop="builtIn">
+                <template slot-scope="scope">
+                    <span>{{getBuiltInText(scope.row.builtIn)}}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="是否删除" prop="deleted" v-if="searchParams.deleted == 'null'" width="80">
+                <template slot-scope="scope">
+                    <span :class="scope.row.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(scope.row.deleted)}}</span>
+                </template>
+            </el-table-column>
+            <el-table-column v-if="permissions['sys:role:menu'] || permissions['sys:role:permission']" fixed="right" label="配置" width="90">
+                <template slot-scope="scope">
+                    <el-link @click="configMenu(scope.row)" v-if="permissions['sys:role:menu']" :underline="false" type="primary">菜单</el-link>
+                    <el-link @click="configPermission(scope.row)" v-if="permissions['sys:role:permission']" :underline="false" type="primary">权限</el-link>
+                </template>
+            </el-table-column>
+            <el-table-column fixed="right" label="操作" width="200">
+                <template slot-scope="scope">
+                    <el-tooltip effect="dark" :open-delay="500" content="编辑" placement="top" v-if="permissions['sys:role:update']">
+                        <el-button @click="edit(scope.row, false)" type="primary" icon="el-icon-edit" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="复制" placement="top" v-if="permissions['sys:role:add']">
+                        <el-button @click="edit(scope.row, true)" type="primary" icon="el-icon-document-copy" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="详情" placement="top">
+                        <el-button @click="get(scope.row)" type="info" icon="el-icon-more" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="禁用" placement="top" v-if="permissions['sys:role:disable'] && scope.row.deleted==0">
+                        <el-button @click="disable(scope.row)" type="warning" icon="el-icon-close" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="启用" placement="top" v-else-if="permissions['sys:role:enable'] && scope.row.deleted==1">
+                        <el-button @click="enable(scope.row)" type="success" icon="el-icon-check" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="删除" placement="top" v-if="permissions['sys:role:del']">
+                        <el-button @click="del(scope.row)" type="danger" icon="el-icon-delete" size="mini" circle></el-button>
+                    </el-tooltip>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                background
+                @size-change="changePageSize"
+                @current-change="changePage"
+                :current-page="pageInfo.pageNum"
+                :page-sizes="[10, 20, 50, 100]"
+                :page-size="pageInfo.pageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="pageInfo.total">
+        </el-pagination>
+    </template>
+    <el-alert title="暂无数据" type="warning" :closable="false" v-else></el-alert>
+
+    <el-dialog title="角色详情" class="dialog-detail" :visible.sync="detailDialogVisible" width="500px !important">
+        <el-form label-position="left" label-width="120px" size="small">
+            <el-form-item label="角色ID">
+                <span>{{detail.roleId}}</span>
+            </el-form-item>
+            <el-form-item label="角色编码">
+                <span>{{detail.roleCode}}</span>
+            </el-form-item>
+            <el-form-item label="角色名称">
+                <span>{{detail.roleName}}</span>
+            </el-form-item>
+            <el-form-item label="是否内置角色">
+                <span>{{detail.builtInText}}</span>
+            </el-form-item>
+            <el-form-item label="备注">
+                <pre>{{detail.remark}}</pre>
+            </el-form-item>
+            <el-form-item label="是否删除">
+                <span :class="detail.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(detail.deleted)}}</span>
+            </el-form-item>
+            <el-form-item label="创建人">
+                <span>{{detail.createUser}}</span>
+            </el-form-item>
+            <el-form-item label="修改人">
+                <span>{{detail.updateUser}}</span>
+            </el-form-item>
+            <el-form-item label="创建时间">
+                <span>{{detail.createTime | formatDateTime}}</span>
+            </el-form-item>
+            <el-form-item label="更新时间">
+                <span>{{detail.updateTime | formatDateTime}}</span>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="closeDialog" icon="el-icon-close" size="small">关闭</el-button>
+            <el-button @click="edit(detail)" v-if="permissions['sys:role:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
+            <el-button @click="del(detail)" v-if="permissions['sys:role:del']" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+        </div>
+    </el-dialog>
+    <el-dialog :title="addOrEditTitle" :visible.sync="addOrEditDialogVisible" width="500px !important">
+        <el-form ref="addOrEditParams" :model="addOrEditParams" label-position="left" label-width="120px" size="small">
+            <el-form-item label="角色编码">
+                <el-input v-model="addOrEditParams.roleCode" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="角色名称">
+                <el-input v-model="addOrEditParams.roleName" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="是否内置角色">
+                <el-radio-group v-model="addOrEditParams.builtIn">
+                    <el-radio v-for="item in builtInSelectList" :label="item.value">{{item.text}}</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="备注">
+                <el-input v-model="addOrEditParams.remark" type="textarea" :autosize="{ minRows: 5, maxRows: 100}"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="save" type="primary" icon="el-icon-document" size="small">保存</el-button>
+            <el-button @click="closeDialog" icon="el-icon-close" size="small">取消</el-button>
+        </div>
+    </el-dialog>
+    <el-drawer :title="configTitle" :visible.sync="configDialogVisible" direction="rtl" size="600px">
+        <iframe :src="configUrl" frameborder="0"></iframe>
+    </el-drawer>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/element-ui.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            viewPermission: 'sys:role:view',
+            permissions: {
+                'sys:role:view': false,
+                'sys:role:add': false,
+                'sys:role:del': false,
+                'sys:role:update': false,
+                'sys:role:disable': false,
+                'sys:role:enable': false,
+                'sys:role:export': false,
+                'sys:role:menu': false,
+                'sys:role:permission': false,
+            },
+            deletedSelectList: [{
+                value: 0, text: '有效'
+            }, {
+                value: 1, text: '无效'
+            }],
+            builtInSelectList: [],
+            pkParams: {
+                roleId: '',
+                copy: false
+            },
+            searchParams: {
+                deleted: 'null',
+                roleId: '',
+            },
+            sortParams: {
+                roleIdSort: sortEnum.DESC
+            },
+            searchPage: {
+                pageIndex: searchPage.defaultPageIndex,
+                pageSize: searchPage.defaultPageSize
+            },
+            multipleSelection: [],
+            pageInfo: {},
+            addOrEditParams: {
+                roleId: '',
+                roleCode: '',
+                roleName: '',
+                builtIn: '',
+                remark: '',
+            },
+            detail: {
+                roleId: '',
+                roleCode: '',
+                roleName: '',
+                builtIn: 0,
+                remark: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            addOrEditTitle: '',
+            detailDialogVisible: false,
+            addOrEditDialogVisible: false,
+
+            configTitle: '',
+            configUrl: '',
+            configDialogVisible: false
+        },
+        mounted: function () {
+            let self = this;
+            self.validatePermissions(self.permissions, self.viewPermission, () => {
+                self.search();
+                self.initBuiltInSelectList();
+            });
+        },
+        methods: {
+
+            changePage: function (pageIndex) {
+                let self = this;
+                if (self.searchPage.pageIndex == pageIndex) {
+                    return;
+                }
+                self.searchPage.pageIndex = pageIndex;
+                self.search();
+            },
+            changePageSize: function (pageSize) {
+                let self = this;
+                if (self.searchPage.pageSize == pageSize) {
+                    return;
+                }
+                self.searchPage.pageSize = pageSize;
+                self.searchPage.pageIndex = 1;
+                self.search();
+            },
+            handleSortChange: function ({column, prop, order}) {
+                let self = this;
+                if (prop) {
+                    self.sortParams = {};
+                    self.sortParams[prop + "Sort"] = order == 'ascending' ? sortEnum.ASC : sortEnum.DESC;
+                } else {
+                    self.sortParams = {
+                        roleIdSort: sortEnum.DESC
+                    };
+                }
+                self.search();
+            },
+            search: function () {
+                let self = this;
+                self.checkedList = [];
+
+                let params = {
+                    pageSize: self.searchPage.pageSize,
+                    pageIndex: self.searchPage.pageIndex,
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+
+                let url = '/role/page-list';
+                self.ajaxPost(url, params, '获取角色列表失败！', response => {
+                    self.pageInfo = response.data;
+                });
+            },
+            resetSearch: function () {
+                let self = this;
+                // self.searchParams.deleted = 'null';
+                self.searchParams.roleId = '';
+
+                self.searchPage.pageIndex = searchPage.defaultPageIndex;
+                self.searchPage.pageSize = searchPage.defaultPageSize;
+            },
+            changeValidSearch: function (valid) {
+                let self = this;
+                if (self.searchParams.deleted === valid) {
+                    return;
+                }
+                self.resetSearch();
+                self.searchParams.deleted = valid;
+                self.search();
+            },
+            add: function () {
+                let self = this;
+                self.resetSave();
+                self.addOrEditDialogVisible = true;
+                self.addOrEditTitle = '添加角色';
+            },
+            configMenu: function (item) {
+                let self = this;
+                self.configTitle = item.roleName + '-菜单配置';
+                self.configUrl = '/sys/role/config/menu.html?roleId=' + item.roleId;
+                self.configDialogVisible = true;
+                // self.openLink('/sys/role/config/menu.html?roleId=' + item.roleId, 'role-config-menu-' + item.roleId, item.roleName + '-菜单配置')
+            },
+            configPermission: function (item) {
+                let self = this;
+                self.configTitle = item.roleName + '-权限配置';
+                self.configUrl = '/sys/role/config/permission.html?roleId=' + item.roleId;
+                self.configDialogVisible = true;
+                // self.openLink('/sys/role/config/permission.html?roleId=' + item.roleId, 'role-config-permission-' + item.roleId, item.roleName + '-权限配置')
+            },
+            edit: function (item, copy) {
+                let self = this;
+                self.resetSave();
+                self.addOrEditDialogVisible = true;
+                self.addOrEditTitle = copy ? '添加角色' : '编辑角色';
+                self.pkParams.roleId = item.roleId;
+                self.pkParams.copy = copy;
+
+                let url = '/role/detail';
+                let params = self.getPkParams(item);
+                self.ajaxGet(url, params, '获取角色详情失败！', response => {
+                    if (!copy) {
+                        self.addOrEditParams.roleId = response.data.roleId;
+                    }
+                    self.addOrEditParams.roleCode = response.data.roleCode;
+                    self.addOrEditParams.roleName = response.data.roleName;
+                    self.addOrEditParams.builtIn = response.data.builtIn + '';
+                    self.addOrEditParams.remark = response.data.remark;
+                    self.addOrEditParams.deleted = response.data.deleted;
+                });
+            },
+            save: function () {
+                let self = this;
+                let ajaxUrl;
+                if (self.pkParams.copy || (self.pkParams.roleId == '')) {
+                    ajaxUrl = '/role/add';
+                } else {
+                    ajaxUrl = '/role/update';
+                }
+
+                self.ajaxPost(ajaxUrl, self.addOrEditParams, '操作失败！', response => {
+                    self.$notify({
+                        message: '操作成功！',
+                        type: 'success'
+                    });
+                    self.resetSave();
+                    setTimeout(self.search, 1000);
+                });
+            },
+            resetSave: function () {
+                let self = this;
+                self.pkParams.roleId = '';
+                self.addOrEditParams.roleId = '';
+                self.addOrEditParams.roleCode = '';
+                self.addOrEditParams.roleName = '';
+                self.addOrEditParams.builtIn = '';
+                self.addOrEditParams.remark = '';
+                self.closeDialog();
+            },
+            get: function (item) {
+                let self = this;
+                self.detailDialogVisible = true;
+
+                let url = '/role/detail';
+                let params = self.getPkParams(item);
+                self.ajaxGet(url, params, '获取详情失败！', response => {
+                    self.detail = response.data;
+                });
+            },
+            closeDialog: function () {
+                let self = this;
+                self.detailDialogVisible = false;
+                self.addOrEditDialogVisible = false;
+            },
+            handleSelectionChange: function (val) {
+                this.multipleSelection = val;
+            },
+            enableSelected: function () {
+                this.execSelected("确定启用吗？", '/role/enable', "启用成功！", "启用失败！");
+            },
+            disableSelected: function () {
+                this.execSelected("确定禁用吗？", '/role/disable', "禁用成功！", "禁用失败！");
+            },
+            delSelected: function () {
+                this.execSelected("确定删除吗？", '/role/delete', "删除成功！", "删除失败！");
+            },
+            execSelected: function (confirmMsg, url, successMsg, failMsg) {
+                let self = this;
+                let params = {
+                    roleIdList: self.multipleSelection.map(item => item.roleId)
+                };
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => self.search());
+            },
+            enable: function (item) {
+                this.exec(item, '/role/enable', '确定启用吗？', '启用成功！', '启用失败！');
+            },
+            disable: function (item) {
+                this.exec(item, '/role/disable', '确定禁用吗？', '禁用成功！', '禁用失败！');
+            },
+            del: function (item) {
+                this.exec(item, '/role/delete', '确定删除吗？', '删除成功！', '删除失败！');
+            },
+            exec: function (item, url, confirmMsg, successMsg, failMsg) {
+                let self = this;
+                let params = self.getPkParams(item);
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => {
+                    self.closeDialog();
+                    self.search();
+                });
+            },
+            getPkParams: function (item) {
+                return {
+                    roleId: item.roleId
+                };
+            },
+            getDeletedText: function (value) {
+                let self = this;
+                let entity = self.deletedSelectList.find(item => item.value == value);
+                return entity ? entity.text : '';
+            },
+            getBuiltIn: function (value) {
+                return this.builtInSelectList.find(item => item.value == value);
+            },
+            getBuiltInText: function (value) {
+                let entity = this.getBuiltIn(value);
+                return entity ? entity.text : '';
+            },
+            initBuiltInSelectList: function () {
+                let self = this;
+                let url = '/option/list';
+                let params = {
+                    condition: {
+                        source: 'boolean',
+                        deleted: '0'
+                    },
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取是否内置角色列表失败！', response => {
+                    self.builtInSelectList = response.data;
+                });
+            },
+            exportExcel: function () {
+                let self = this;
+
+                let params = {
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+                let paramsStr = JSON.stringify(params, (key, value) => {
+                    if (value) return value;
+                    return undefined;
+                });
+                window.open('/role/export?params=' + encodeURIComponent(paramsStr));
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

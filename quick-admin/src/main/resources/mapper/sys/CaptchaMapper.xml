@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 默认生成的的sql，不要修改！！！ -->
+<mapper namespace="org.xi.quick.sys.mapper.CaptchaMapper">
+
+    <resultMap id="BaseResultMap" type="org.xi.quick.sys.models.entity.CaptchaEntity">
+        <result property="uuid" column="uuid"/>
+        <result property="code" column="code"/>
+        <result property="expireAt" column="expire_at"/>
+    </resultMap>
+
+    <parameterMap id="BaseParameterMap" type="org.xi.quick.sys.models.entity.CaptchaEntity"></parameterMap>
+    <parameterMap id="BaseConditionMap" type="org.xi.quick.sys.models.condition.CaptchaCondition"></parameterMap>
+
+    <sql id="tableName">`sys_captcha`</sql>
+    <sql id="selectCondition">
+        <trim prefixOverrides="AND|OR">
+                <if test="condition.uuid != null and condition.uuid != ''">
+                    AND `uuid` = #{condition.uuid}
+                </if>
+                <if test="condition.uuidList != null and condition.uuidList.size() > 0">
+                    AND `uuid` in
+                    <foreach collection="condition.uuidList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.uuidIsEmpty != null and condition.uuidIsEmpty == true">
+                    AND `uuid` = ''
+                </if>
+                <if test="condition.uuidStartWith != null and condition.uuidStartWith != ''">
+                    AND `uuid` LIKE concat(#{condition.uuidStartWith}, '%')
+                </if>
+                <if test="condition.uuidContains != null and condition.uuidContains != ''">
+                    AND `uuid` LIKE concat('%', #{condition.uuidContains}, '%')
+                </if>
+                <if test="condition.code != null and condition.code != ''">
+                    AND `code` = #{condition.code}
+                </if>
+                <if test="condition.codeList != null and condition.codeList.size() > 0">
+                    AND `code` in
+                    <foreach collection="condition.codeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.codeIsEmpty != null and condition.codeIsEmpty == true">
+                    AND `code` = ''
+                </if>
+                <if test="condition.codeStartWith != null and condition.codeStartWith != ''">
+                    AND `code` LIKE concat(#{condition.codeStartWith}, '%')
+                </if>
+                <if test="condition.codeContains != null and condition.codeContains != ''">
+                    AND `code` LIKE concat('%', #{condition.codeContains}, '%')
+                </if>
+                <if test="condition.expireAtList != null and condition.expireAtList.size() > 0">
+                    AND `expire_at` in
+                    <foreach collection="condition.expireAtList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.expireAtMin != null">
+                    <![CDATA[
+                    AND `expire_at` >= #{condition.expireAtMin}
+                    ]]>
+                </if>
+                <if test="condition.expireAtMax != null">
+                    <![CDATA[
+                    AND `expire_at` <= #{condition.expireAtMax}
+                    ]]>
+                </if>
+        </trim>
+    </sql>
+
+    <sql id="where">
+        <if test="condition != null">
+            <where>
+                <include refid="selectCondition"/>
+            </where>
+        </if>
+    </sql>
+    <sql id="listWhere">
+        <if test="conditionList != null and conditionList.size() > 0">
+            <where>
+                <foreach collection="conditionList" item="condition" open="(" close=")" separator=" OR ">
+                    (<include refid="selectCondition"/>)
+                </foreach>
+            </where>
+        </if>
+    </sql>
+    <sql id="orderBy">
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.uuidSort != null">
+                    <choose>
+                        <when test="order.uuidSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `uuid` ASC,
+                        </when>
+                        <otherwise>
+                            `uuid` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.codeSort != null">
+                    <choose>
+                        <when test="order.codeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `code` ASC,
+                        </when>
+                        <otherwise>
+                            `code` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.expireAtSort != null">
+                    <choose>
+                        <when test="order.expireAtSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `expire_at` ASC,
+                        </when>
+                        <otherwise>
+                            `expire_at` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </sql>
+    <sql id="selectColumnList">
+        `uuid`,
+        `code`,
+        `expire_at`
+    </sql>
+    <sql id="updateColumnSet">
+        <set>
+            <if test="entity.uuid != null">
+                `uuid` = #{entity.uuid},
+            </if>
+            <if test="entity.code != null">
+                `code` = #{entity.code},
+            </if>
+            <if test="entity.expireAt != null">
+                `expire_at` = #{entity.expireAt}
+            </if>
+        </set>
+    </sql>
+
+    <insert id="insert" parameterMap="BaseParameterMap">
+        insert into <include refid="tableName"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entity.uuid != null">`uuid`,</if>
+            <if test="entity.code != null">`code`,</if>
+            <if test="entity.expireAt != null">`expire_at`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entity.uuid != null">#{entity.uuid},</if>
+            <if test="entity.code != null">#{entity.code},</if>
+            <if test="entity.expireAt != null">#{entity.expireAt},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertList" parameterMap="BaseParameterMap">
+        <foreach collection="list" item="item" separator=";">
+            insert into <include refid="tableName"/>
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="item.uuid != null">`uuid`,</if>
+                <if test="item.code != null">`code`,</if>
+                <if test="item.expireAt != null">`expire_at`,</if>
+            </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="item.uuid != null">#{item.uuid},</if>
+                <if test="item.code != null">#{item.code},</if>
+                <if test="item.expireAt != null">#{item.expireAt},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+    <delete id="deleteByCondition" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </delete>
+
+    <delete id="deleteByConditionList" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </delete>
+
+    <update id="updateByCondition">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="where"/>
+    </update>
+
+    <update id="updateByConditionList">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="listWhere"/>
+    </update>
+
+    <select id="getByCondition" resultMap="BaseResultMap" parameterMap="BaseConditionMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="selectByConditionList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="listWhere"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="countByCondition" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="countByConditionList" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </select>
+</mapper>

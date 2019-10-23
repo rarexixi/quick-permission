@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 存放手写的sql -->
+<mapper namespace="org.xi.quick.sys.mapper.ConfigMapper">
+
+    <resultMap id="ExtensionResultMap" extends="BaseResultMap" type="org.xi.quick.sys.models.entity.extension.ConfigEntityExtension">
+    </resultMap>
+
+    <parameterMap id="ConditionExtensionMap" type="org.xi.quick.sys.models.condition.extension.ConfigConditionExtension"></parameterMap>
+
+    <select id="getByPk" resultMap="ExtensionResultMap">
+        SELECT DISTINCT
+        MT.`key`,
+        MT.`value`,
+        MT.`remark`,
+        MT.`deleted`,
+        MT.`create_user`,
+        MT.`update_user`,
+        MT.`create_time`,
+        MT.`update_time`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+        MT.`key` = #{key}
+        </where>
+    </select>
+
+    <select id="getExList" resultMap="ExtensionResultMap" parameterMap="ConditionExtensionMap">
+        SELECT DISTINCT
+        MT.`key`,
+        MT.`value`,
+        MT.`remark`,
+        MT.`deleted`,
+        MT.`create_user`,
+        MT.`update_user`,
+        MT.`create_time`,
+        MT.`update_time`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+            <if test="condition.key != null and condition.key != ''">
+                AND MT.`key` = #{condition.key}
+            </if>
+            <if test="condition.keyList != null and condition.keyList.size() > 0">
+                AND MT.`key` in
+                <foreach collection="condition.keyList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.keyIsEmpty != null and condition.keyIsEmpty == true">
+                AND MT.`key` = ''
+            </if>
+            <if test="condition.keyStartWith != null and condition.keyStartWith != ''">
+                AND MT.`key` LIKE concat(#{condition.keyStartWith}, '%')
+            </if>
+            <if test="condition.keyContains != null and condition.keyContains != ''">
+                AND MT.`key` LIKE concat('%', #{condition.keyContains}, '%')
+            </if>
+            <if test="condition.deleted != null">
+                AND MT.`deleted` = #{condition.deleted}
+            </if>
+            <if test="condition.createUser != null">
+                AND MT.`create_user` = #{condition.createUser}
+            </if>
+            <if test="condition.createUserList != null and condition.createUserList.size() > 0">
+                AND MT.`create_user` in
+                <foreach collection="condition.createUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.createUserMin != null">
+                <![CDATA[
+                AND MT.`create_user` >= #{condition.createUserMin}
+                ]]>
+            </if>
+            <if test="condition.createUserMax != null">
+                <![CDATA[
+                AND MT.`create_user` <= #{condition.createUserMax}
+                ]]>
+            </if>
+            <if test="condition.updateUser != null">
+                AND MT.`update_user` = #{condition.updateUser}
+            </if>
+            <if test="condition.updateUserList != null and condition.updateUserList.size() > 0">
+                AND MT.`update_user` in
+                <foreach collection="condition.updateUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.updateUserMin != null">
+                <![CDATA[
+                AND MT.`update_user` >= #{condition.updateUserMin}
+                ]]>
+            </if>
+            <if test="condition.updateUserMax != null">
+                <![CDATA[
+                AND MT.`update_user` <= #{condition.updateUserMax}
+                ]]>
+            </if>
+            <if test="condition.createTimeList != null and condition.createTimeList.size() > 0">
+                AND MT.`create_time` in
+                <foreach collection="condition.createTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.createTimeMin != null">
+                <![CDATA[
+                AND MT.`create_time` >= #{condition.createTimeMin}
+                ]]>
+            </if>
+            <if test="condition.createTimeMax != null">
+                <![CDATA[
+                AND MT.`create_time` <= #{condition.createTimeMax}
+                ]]>
+            </if>
+            <if test="condition.updateTimeList != null and condition.updateTimeList.size() > 0">
+                AND MT.`update_time` in
+                <foreach collection="condition.updateTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.updateTimeMin != null">
+                <![CDATA[
+                AND MT.`update_time` >= #{condition.updateTimeMin}
+                ]]>
+            </if>
+            <if test="condition.updateTimeMax != null">
+                <![CDATA[
+                AND MT.`update_time` <= #{condition.updateTimeMax}
+                ]]>
+            </if>
+        </where>
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.keySort != null">
+                    <choose>
+                        <when test="order.keySort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`key` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`key` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.deletedSort != null">
+                    <choose>
+                        <when test="order.deletedSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`deleted` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`deleted` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createUserSort != null">
+                    <choose>
+                        <when test="order.createUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`create_user` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`create_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateUserSort != null">
+                    <choose>
+                        <when test="order.updateUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`update_user` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`update_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createTimeSort != null">
+                    <choose>
+                        <when test="order.createTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`create_time` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`create_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateTimeSort != null">
+                    <choose>
+                        <when test="order.updateTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`update_time` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`update_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </select>
+</mapper>

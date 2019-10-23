@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>系统用户管理</title>
+    <link rel="stylesheet" href="/css/element-ui.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/element-ui-override.css">
+    <style>
+        .el-tag + .el-tag {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-breadcrumb separator="/">
+        <el-breadcrumb-item>系统用户管理</el-breadcrumb-item>
+        <el-breadcrumb-item>系统用户列表</el-breadcrumb-item>
+    </el-breadcrumb>
+    <el-form ref="searchParams" class="search-form" :model="searchParams" label-position="left" size="small" label-width="120px">
+        <el-row :gutter="10">
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="6">
+                <el-form-item label="用户ID">
+                    <el-input v-model="searchParams.userId" type="text"></el-input>
+                </el-form-item>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="6">
+                <el-form-item label="用户名">
+                    <el-input v-model="searchParams.usernameStartWith"></el-input>
+                </el-form-item>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="6">
+                <el-form-item label="邮箱">
+                    <el-input v-model="searchParams.emailStartWith"></el-input>
+                </el-form-item>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="6">
+                <el-form-item label="手机号">
+                    <el-input v-model="searchParams.mobileStartWith"></el-input>
+                </el-form-item>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="6">
+                <el-form-item label="姓名">
+                    <el-input v-model="searchParams.realNameStartWith"></el-input>
+                </el-form-item>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="8" :lg="8" :xl="6">
+                <el-form-item label="用户角色">
+                    <el-select v-model="searchParams.roleId" filterable placeholder="全部">
+                        <el-option value="" label="全部"></el-option>
+                        <el-option v-for="item in roleSelectList" :value="item.roleId" :label="item.roleName"></el-option>
+                    </el-select>
+                </el-form-item>
+            </el-col>
+            <el-col :span="24">
+                <el-form-item>
+                    <el-button @click="search" type="primary" icon="el-icon-search">搜索</el-button>
+                    <el-button @click="resetSearch" type="warning" icon="el-icon-refresh">重置</el-button>
+                    <el-button @click="exportExcel" v-if="permissions['sys:user:export']" type="success" icon="el-icon-download">导出</el-button>
+                </el-form-item>
+            </el-col>
+        </el-row>
+    </el-form>
+    <el-tabs v-model="searchParams.deleted" @tab-click="search">
+        <el-tab-pane name="null" label="全部"></el-tab-pane>
+        <el-tab-pane name="0" label="有效"></el-tab-pane>
+        <el-tab-pane name="1" label="无效"></el-tab-pane>
+    </el-tabs>
+    <div class="operate-btn-group">
+        <el-button @click="add" v-if="permissions['sys:user:add']" type="primary" icon="el-icon-plus" size="small">添加</el-button>
+        <el-button @click="enableSelected" v-if="permissions['sys:user:enable'] && multipleSelection.length > 0" type="success" icon="el-icon-check" size="small">启用</el-button>
+        <el-button @click="disableSelected" v-if="permissions['sys:user:disable'] && multipleSelection.length > 0" type="warning" icon="el-icon-close" size="small">禁用</el-button>
+        <el-button @click="delSelected" v-if="permissions['sys:user:del'] && multipleSelection.length > 0" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+    </div>
+    <template v-if="pageInfo && pageInfo.list && pageInfo.list.length > 0">
+        <el-table ref="multipleTable" :data="pageInfo.list" tooltip-effect="dark" @sort-change="handleSortChange" @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column label="用户ID" prop="userId" sortable="custom">
+                <template slot-scope="scope">{{scope.row.userId}}</template>
+            </el-table-column>
+            <el-table-column label="用户名" prop="username" sortable="custom">
+                <template slot-scope="scope">{{scope.row.username}}</template>
+            </el-table-column>
+            <el-table-column label="邮箱" prop="email" sortable="custom">
+                <template slot-scope="scope">{{scope.row.email}}</template>
+            </el-table-column>
+            <el-table-column label="手机号" prop="mobile" sortable="custom">
+                <template slot-scope="scope">{{scope.row.mobile}}</template>
+            </el-table-column>
+            <el-table-column label="姓名" prop="realName" sortable="custom">
+                <template slot-scope="scope">{{scope.row.realName}}</template>
+            </el-table-column>
+            <el-table-column label="头像" prop="avatar">
+                <template slot-scope="scope">{{scope.row.avatar}}</template>
+            </el-table-column>
+            <el-table-column label="是否删除" prop="deleted" v-if="searchParams.deleted == 'null'" width="80">
+                <template slot-scope="scope">
+                    <span :class="scope.row.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(scope.row.deleted)}}</span>
+                </template>
+            </el-table-column>
+            <el-table-column v-if="permissions['sys:user:role']" fixed="right" label="配置" width="60">
+                <template slot-scope="scope">
+                    <el-link @click="configRole(scope.row)" :underline="false" type="primary">角色</el-link>
+                </template>
+            </el-table-column>
+            <el-table-column fixed="right" label="操作" width="200">
+                <template slot-scope="scope">
+                    <el-tooltip effect="dark" :open-delay="500" content="编辑" placement="top" v-if="permissions['sys:user:update']">
+                        <el-button @click="edit(scope.row, false)" type="primary" icon="el-icon-edit" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="复制" placement="top" v-if="permissions['sys:user:add']">
+                        <el-button @click="edit(scope.row, true)" type="primary" icon="el-icon-document-copy" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="详情" placement="top">
+                        <el-button @click="get(scope.row)" type="info" icon="el-icon-more" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="禁用" placement="top" v-if="permissions['sys:user:disable'] && scope.row.deleted==0">
+                        <el-button @click="disable(scope.row)" type="warning" icon="el-icon-close" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="启用" placement="top" v-else-if="permissions['sys:user:enable'] && scope.row.deleted==1">
+                        <el-button @click="enable(scope.row)" type="success" icon="el-icon-check" size="mini" circle></el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :open-delay="500" content="删除" placement="top" v-if="permissions['sys:user:del']">
+                        <el-button @click="del(scope.row)" type="danger" icon="el-icon-delete" size="mini" circle></el-button>
+                    </el-tooltip>
+                </template>
+            </el-table-column>
+        </el-table>
+        <el-pagination
+                background
+                @size-change="changePageSize"
+                @current-change="changePage"
+                :current-page="pageInfo.pageNum"
+                :page-sizes="[10, 20, 50, 100]"
+                :page-size="pageInfo.pageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="pageInfo.total">
+        </el-pagination>
+    </template>
+    <el-alert title="暂无数据" type="warning" :closable="false" v-else></el-alert>
+
+    <el-dialog title="系统用户详情" class="dialog-detail" :visible.sync="detailDialogVisible" width="500px !important">
+        <el-form label-position="left" label-width="120px" size="small">
+            <el-form-item label="用户ID">
+                <span>{{detail.userId}}</span>
+            </el-form-item>
+            <el-form-item label="用户名">
+                <span>{{detail.username}}</span>
+            </el-form-item>
+            <el-form-item label="邮箱">
+                <span>{{detail.email}}</span>
+            </el-form-item>
+            <el-form-item label="手机号">
+                <span>{{detail.mobile}}</span>
+            </el-form-item>
+            <el-form-item label="姓名">
+                <span>{{detail.realName}}</span>
+            </el-form-item>
+            <el-form-item label="头像">
+                <span>{{detail.avatar}}</span>
+            </el-form-item>
+            <el-form-item label="是否删除">
+                <span :class="detail.deleted == 0 ? 'text-success' : 'text-danger'">{{getDeletedText(detail.deleted)}}</span>
+            </el-form-item>
+            <el-form-item label="创建人">
+                <span>{{detail.createUser}}</span>
+            </el-form-item>
+            <el-form-item label="修改人">
+                <span>{{detail.updateUser}}</span>
+            </el-form-item>
+            <el-form-item label="创建时间">
+                <span>{{detail.createTime | formatDateTime}}</span>
+            </el-form-item>
+            <el-form-item label="更新时间">
+                <span>{{detail.updateTime | formatDateTime}}</span>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="closeDialog" icon="el-icon-close" size="small">关闭</el-button>
+            <el-button @click="edit(detail)" v-if="permissions['sys:user:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
+            <el-button @click="del(detail)" v-if="permissions['sys:user:del']" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+        </div>
+    </el-dialog>
+    <el-dialog :title="addOrEditTitle" :visible.sync="addOrEditDialogVisible" width="500px !important">
+        <el-form ref="addOrEditParams" :model="addOrEditParams" label-position="left" label-width="120px" size="small">
+            <el-form-item label="用户名">
+                <el-input v-model="addOrEditParams.username" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="密码">
+                <el-input v-model="addOrEditParams.password" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱">
+                <el-input v-model="addOrEditParams.email" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="手机号">
+                <el-input v-model="addOrEditParams.mobile" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="姓名">
+                <el-input v-model="addOrEditParams.realName" type="text"></el-input>
+            </el-form-item>
+            <el-form-item label="头像">
+                <el-input v-model="addOrEditParams.avatar" type="text"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="save" type="primary" icon="el-icon-document" size="small">保存</el-button>
+            <el-button @click="closeDialog" icon="el-icon-close" size="small">取消</el-button>
+        </div>
+    </el-dialog>
+    <el-dialog title="角色控制" :visible.sync="roleDialogVisible">
+        <el-alert v-if="userRoleList.length == 0" :closable="false" title="暂时没有配置角色" type="warning"></el-alert>
+        <el-tag v-for="(item, index) in userRoleList" :key="item.roleId" closable @close="removeRole(item.roleId, index)">{{item.roleName}}</el-tag>
+        <el-form :inline="true" size="small" style="margin-top: 10px">
+            <el-form-item>
+                <el-select v-model="userRoleId" filterable placeholder="选择角色">
+                    <el-option v-for="item in roleSelectList" :value="item.roleId" :label="item.roleName"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="addRole">添加</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+</div>
+
+<script src="/js/vue.js"></script>
+<script src="/js/element-ui.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            viewPermission: 'sys:user:view',
+            permissions: {
+                'sys:user:view': false,
+                'sys:user:add': false,
+                'sys:user:del': false,
+                'sys:user:update': false,
+                'sys:user:disable': false,
+                'sys:user:enable': false,
+                'sys:user:export': false,
+                'sys:user:role': false
+            },
+            deletedSelectList: [{
+                value: 0, text: '有效'
+            }, {
+                value: 1, text: '无效'
+            }],
+            roleSelectList: [],
+            pkParams: {
+                userId: '',
+                copy: false
+            },
+            searchParams: {
+                deleted: 'null',
+                userId: '',
+                usernameStartWith: '',
+                emailStartWith: '',
+                mobileStartWith: '',
+                realNameStartWith: '',
+            },
+            sortParams: {
+                userIdSort: sortEnum.DESC
+            },
+            searchPage: {
+                pageIndex: searchPage.defaultPageIndex,
+                pageSize: searchPage.defaultPageSize
+            },
+            multipleSelection: [],
+            pageInfo: {},
+            addOrEditParams: {
+                userId: '',
+                username: '',
+                password: '',
+                salt: '',
+                email: '',
+                mobile: '',
+                realName: '',
+                avatar: '',
+            },
+            detail: {
+                userId: '',
+                username: '',
+                password: '',
+                salt: '',
+                email: '',
+                mobile: '',
+                realName: '',
+                avatar: '',
+                deleted: 0,
+                createUser: '',
+                updateUser: '',
+                createTime: '',
+                updateTime: ''
+            },
+            addOrEditTitle: '',
+            detailDialogVisible: false,
+            addOrEditDialogVisible: false,
+
+            roleDialogVisible: false,
+            userRoleList: [],
+            userRoleId: ''
+        },
+        mounted: function () {
+            let self = this;
+            self.validatePermissions(self.permissions, self.viewPermission, () => {
+                self.search();
+                self.initRoleSelectList();
+            });
+        },
+        methods: {
+
+            changePage: function (pageIndex) {
+                let self = this;
+                if (self.searchPage.pageIndex == pageIndex) {
+                    return;
+                }
+                self.searchPage.pageIndex = pageIndex;
+                self.search();
+            },
+            changePageSize: function (pageSize) {
+                let self = this;
+                if (self.searchPage.pageSize == pageSize) {
+                    return;
+                }
+                self.searchPage.pageSize = pageSize;
+                self.searchPage.pageIndex = 1;
+                self.search();
+            },
+            handleSortChange: function ({column, prop, order}) {
+                let self = this;
+                if (prop) {
+                    self.sortParams = {};
+                    self.sortParams[prop + "Sort"] = order == 'ascending' ? sortEnum.ASC : sortEnum.DESC;
+                } else {
+                    self.sortParams = {
+                        userIdSort: sortEnum.DESC
+                    };
+                }
+                self.search();
+            },
+            search: function () {
+                let self = this;
+                self.checkedList = [];
+
+                let params = {
+                    pageSize: self.searchPage.pageSize,
+                    pageIndex: self.searchPage.pageIndex,
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+
+                let url = '/user/page-list';
+                self.ajaxPost(url, params, '获取系统用户列表失败！', response => {
+                    self.pageInfo = response.data;
+                });
+            },
+            resetSearch: function () {
+                let self = this;
+                // self.searchParams.deleted = 'null';
+                self.searchParams.userId = '';
+                self.searchParams.usernameStartWith = '';
+                self.searchParams.emailStartWith = '';
+                self.searchParams.mobileStartWith = '';
+                self.searchParams.realNameStartWith = '';
+                self.searchParams.roleId = '';
+
+                self.searchPage.pageIndex = searchPage.defaultPageIndex;
+                self.searchPage.pageSize = searchPage.defaultPageSize;
+            },
+            changeValidSearch: function (valid) {
+                let self = this;
+                if (self.searchParams.deleted === valid) {
+                    return;
+                }
+                self.resetSearch();
+                self.searchParams.deleted = valid;
+                self.search();
+            },
+            add: function () {
+                let self = this;
+                self.resetSave();
+                self.addOrEditDialogVisible = true;
+                self.addOrEditTitle = '添加系统用户';
+            },
+            edit: function (item, copy) {
+                let self = this;
+                self.resetSave();
+                self.addOrEditDialogVisible = true;
+                self.addOrEditTitle = copy ? '添加系统用户' : '编辑系统用户';
+                self.pkParams.userId = item.userId;
+                self.pkParams.copy = copy;
+
+                let url = '/user/detail';
+                let params = self.getPkParams(item);
+                self.ajaxGet(url, params, '获取系统用户详情失败！', response => {
+                    if (!copy) {
+                        self.addOrEditParams.userId = response.data.userId;
+                    }
+                    self.addOrEditParams.username = response.data.username;
+                    self.addOrEditParams.password = response.data.password;
+                    self.addOrEditParams.salt = response.data.salt;
+                    self.addOrEditParams.email = response.data.email;
+                    self.addOrEditParams.mobile = response.data.mobile;
+                    self.addOrEditParams.realName = response.data.realName;
+                    self.addOrEditParams.avatar = response.data.avatar;
+                    self.addOrEditParams.deleted = response.data.deleted;
+                });
+            },
+            save: function () {
+                let self = this;
+                let ajaxUrl;
+                if (self.pkParams.copy || (self.pkParams.userId == '')) {
+                    ajaxUrl = '/user/add';
+                } else {
+                    ajaxUrl = '/user/update';
+                }
+
+                self.ajaxPost(ajaxUrl, self.addOrEditParams, '操作失败！', response => {
+                    self.$notify({
+                        message: '操作成功！',
+                        type: 'success'
+                    });
+                    self.resetSave();
+                    setTimeout(self.search, 1000);
+                });
+            },
+            resetSave: function () {
+                let self = this;
+                self.pkParams.userId = '';
+                self.addOrEditParams.userId = '';
+                self.addOrEditParams.username = '';
+                self.addOrEditParams.password = '';
+                self.addOrEditParams.salt = '';
+                self.addOrEditParams.email = '';
+                self.addOrEditParams.mobile = '';
+                self.addOrEditParams.realName = '';
+                self.addOrEditParams.avatar = '';
+                self.closeDialog();
+            },
+            get: function (item) {
+                let self = this;
+                self.detailDialogVisible = true;
+
+                let url = '/user/detail';
+                let params = self.getPkParams(item);
+                self.ajaxGet(url, params, '获取详情失败！', response => {
+                    self.detail = response.data;
+                });
+            },
+            configRole: function (item) {
+                let self = this;
+                let params = {
+                    condition: {userId: item.userId}
+                };
+                self.pkParams.userId = item.userId;
+                let url = '/user-role/list';
+                self.ajaxPost(url, params, '获取用户角色列表失败！', response => {
+                    let userRoleList = [];
+                    response.data.forEach(item => {
+                        let role = self.getRole(item.roleId);
+                        if (role) userRoleList.push(role);
+                    });
+                    self.userRoleList = userRoleList;
+                });
+                self.roleDialogVisible = true;
+            },
+            addRole: function () {
+                let self = this;
+                let ajaxUrl = '/user-role/add';
+                if (self.userRoleList.find(item => item.roleId == self.userRoleId)) {
+                    self.$notify({
+                        message: '数据已存在',
+                        type: 'error'
+                    });
+                    self.userRoleId = '';
+                    return;
+                }
+                let params = {
+                    userId: self.pkParams.userId,
+                    roleId: self.userRoleId
+                };
+                self.ajaxPost(ajaxUrl, params, '操作失败！', response => {
+                    self.$notify({
+                        message: '操作成功！',
+                        type: 'success'
+                    });
+                    let role = self.getRole(self.userRoleId);
+                    self.userRoleList.push(role);
+                    self.userRoleId = '';
+                });
+            },
+            removeRole: function (roleId, index) {
+                let self = this;
+                let params = {
+                    userId: self.pkParams.userId,
+                    roleId: roleId
+                };
+                self.confirmPost('确定删除吗？', '/user-role/delete', params, '删除成功！', '删除失败！', response => {
+                    self.userRoleList.splice(index, 1);
+                });
+            },
+            closeDialog: function () {
+                let self = this;
+                self.detailDialogVisible = false;
+                self.addOrEditDialogVisible = false;
+            },
+            handleSelectionChange: function (val) {
+                this.multipleSelection = val;
+            },
+            enableSelected: function () {
+                this.execSelected("确定启用吗？", '/user/enable', "启用成功！", "启用失败！");
+            },
+            disableSelected: function () {
+                this.execSelected("确定禁用吗？", '/user/disable', "禁用成功！", "禁用失败！");
+            },
+            delSelected: function () {
+                this.execSelected("确定删除吗？", '/user/delete', "删除成功！", "删除失败！");
+            },
+            execSelected: function (confirmMsg, url, successMsg, failMsg) {
+                let self = this;
+                let params = {
+                    userIdList: self.multipleSelection.map(item => item.userId)
+                };
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => self.search());
+            },
+            enable: function (item) {
+                this.exec(item, '/user/enable', '确定启用吗？', '启用成功！', '启用失败！');
+            },
+            disable: function (item) {
+                this.exec(item, '/user/disable', '确定禁用吗？', '禁用成功！', '禁用失败！');
+            },
+            del: function (item) {
+                this.exec(item, '/user/delete', '确定删除吗？', '删除成功！', '删除失败！');
+            },
+            exec: function (item, url, confirmMsg, successMsg, failMsg) {
+                let self = this;
+                let params = self.getPkParams(item);
+                self.confirmPost(confirmMsg, url, params, successMsg, failMsg, response => {
+                    self.closeDialog();
+                    self.search();
+                });
+            },
+            getPkParams: function (item) {
+                return {
+                    userId: item.userId
+                };
+            },
+            getDeletedText: function (value) {
+                let self = this;
+                let entity = self.deletedSelectList.find(item => item.value == value);
+                return entity ? entity.text : '';
+            },
+            getRole: function (roleId) {
+                return this.roleSelectList.find(item => item.roleId == roleId);
+            },
+            getRoleText: function (roleId) {
+                let entity = this.getRole(roleId);
+                return entity ? entity.roleName : '';
+            },
+            initRoleSelectList: function () {
+                let self = this;
+                let url = '/role/list';
+                let params = {
+                    condition: {},
+                    order: {}
+                };
+                self.ajaxPost(url, params, '获取用户角色列表失败！', response => {
+                    self.roleSelectList = response.data;
+                });
+            },
+            exportExcel: function () {
+                let self = this;
+
+                let params = {
+                    condition: self.searchParams,
+                    order: self.sortParams
+                };
+                let paramsStr = JSON.stringify(params, (key, value) => {
+                    if (value) return value;
+                    return undefined;
+                });
+                window.open('/user/export?params=' + encodeURIComponent(paramsStr));
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

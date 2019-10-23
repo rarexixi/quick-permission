@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 默认生成的的sql，不要修改！！！ -->
+<mapper namespace="org.xi.quick.sys.mapper.OptionMapper">
+
+    <resultMap id="BaseResultMap" type="org.xi.quick.sys.models.entity.OptionEntity">
+        <result property="id" column="id"/>
+        <result property="optionCode" column="option_code"/>
+        <result property="value" column="value"/>
+        <result property="text" column="text"/>
+        <result property="sort" column="sort"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="type" column="type"/>
+        <result property="builtIn" column="built_in"/>
+        <result property="ext" column="ext"/>
+        <result property="deleted" column="deleted"/>
+        <result property="createUser" column="create_user"/>
+        <result property="updateUser" column="update_user"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <parameterMap id="BaseParameterMap" type="org.xi.quick.sys.models.entity.OptionEntity"></parameterMap>
+    <parameterMap id="BaseConditionMap" type="org.xi.quick.sys.models.condition.OptionCondition"></parameterMap>
+
+    <sql id="tableName">`sys_option`</sql>
+    <sql id="selectCondition">
+        <trim prefixOverrides="AND|OR">
+                <if test="condition.id != null">
+                    AND `id` = #{condition.id}
+                </if>
+                <if test="condition.idList != null and condition.idList.size() > 0">
+                    AND `id` in
+                    <foreach collection="condition.idList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.idMin != null">
+                    <![CDATA[
+                    AND `id` >= #{condition.idMin}
+                    ]]>
+                </if>
+                <if test="condition.idMax != null">
+                    <![CDATA[
+                    AND `id` <= #{condition.idMax}
+                    ]]>
+                </if>
+                <if test="condition.optionCode != null and condition.optionCode != ''">
+                    AND `option_code` = #{condition.optionCode}
+                </if>
+                <if test="condition.optionCodeList != null and condition.optionCodeList.size() > 0">
+                    AND `option_code` in
+                    <foreach collection="condition.optionCodeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.optionCodeIsEmpty != null and condition.optionCodeIsEmpty == true">
+                    AND `option_code` = ''
+                </if>
+                <if test="condition.optionCodeStartWith != null and condition.optionCodeStartWith != ''">
+                    AND `option_code` LIKE concat(#{condition.optionCodeStartWith}, '%')
+                </if>
+                <if test="condition.optionCodeContains != null and condition.optionCodeContains != ''">
+                    AND `option_code` LIKE concat('%', #{condition.optionCodeContains}, '%')
+                </if>
+                <if test="condition.value != null and condition.value != ''">
+                    AND `value` = #{condition.value}
+                </if>
+                <if test="condition.valueList != null and condition.valueList.size() > 0">
+                    AND `value` in
+                    <foreach collection="condition.valueList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.valueIsEmpty != null and condition.valueIsEmpty == true">
+                    AND `value` = ''
+                </if>
+                <if test="condition.valueStartWith != null and condition.valueStartWith != ''">
+                    AND `value` LIKE concat(#{condition.valueStartWith}, '%')
+                </if>
+                <if test="condition.valueContains != null and condition.valueContains != ''">
+                    AND `value` LIKE concat('%', #{condition.valueContains}, '%')
+                </if>
+                <if test="condition.text != null and condition.text != ''">
+                    AND `text` = #{condition.text}
+                </if>
+                <if test="condition.textList != null and condition.textList.size() > 0">
+                    AND `text` in
+                    <foreach collection="condition.textList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.textIsEmpty != null and condition.textIsEmpty == true">
+                    AND `text` = ''
+                </if>
+                <if test="condition.textStartWith != null and condition.textStartWith != ''">
+                    AND `text` LIKE concat(#{condition.textStartWith}, '%')
+                </if>
+                <if test="condition.textContains != null and condition.textContains != ''">
+                    AND `text` LIKE concat('%', #{condition.textContains}, '%')
+                </if>
+                <if test="condition.sort != null">
+                    AND `sort` = #{condition.sort}
+                </if>
+                <if test="condition.sortList != null and condition.sortList.size() > 0">
+                    AND `sort` in
+                    <foreach collection="condition.sortList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.sortMin != null">
+                    <![CDATA[
+                    AND `sort` >= #{condition.sortMin}
+                    ]]>
+                </if>
+                <if test="condition.sortMax != null">
+                    <![CDATA[
+                    AND `sort` <= #{condition.sortMax}
+                    ]]>
+                </if>
+                <if test="condition.parentId != null">
+                    AND `parent_id` = #{condition.parentId}
+                </if>
+                <if test="condition.parentIdList != null and condition.parentIdList.size() > 0">
+                    AND `parent_id` in
+                    <foreach collection="condition.parentIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.parentIdMin != null">
+                    <![CDATA[
+                    AND `parent_id` >= #{condition.parentIdMin}
+                    ]]>
+                </if>
+                <if test="condition.parentIdMax != null">
+                    <![CDATA[
+                    AND `parent_id` <= #{condition.parentIdMax}
+                    ]]>
+                </if>
+                <if test="condition.type != null">
+                    AND `type` = #{condition.type}
+                </if>
+                <if test="condition.typeList != null and condition.typeList.size() > 0">
+                    AND `type` in
+                    <foreach collection="condition.typeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.typeMin != null">
+                    <![CDATA[
+                    AND `type` >= #{condition.typeMin}
+                    ]]>
+                </if>
+                <if test="condition.typeMax != null">
+                    <![CDATA[
+                    AND `type` <= #{condition.typeMax}
+                    ]]>
+                </if>
+                <if test="condition.builtIn != null">
+                    AND `built_in` = #{condition.builtIn}
+                </if>
+                <if test="condition.builtInList != null and condition.builtInList.size() > 0">
+                    AND `built_in` in
+                    <foreach collection="condition.builtInList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.builtInMin != null">
+                    <![CDATA[
+                    AND `built_in` >= #{condition.builtInMin}
+                    ]]>
+                </if>
+                <if test="condition.builtInMax != null">
+                    <![CDATA[
+                    AND `built_in` <= #{condition.builtInMax}
+                    ]]>
+                </if>
+                <if test="condition.deleted != null">
+                    AND `deleted` = #{condition.deleted}
+                </if>
+                <if test="condition.createUser != null">
+                    AND `create_user` = #{condition.createUser}
+                </if>
+                <if test="condition.createUserList != null and condition.createUserList.size() > 0">
+                    AND `create_user` in
+                    <foreach collection="condition.createUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.createUserMin != null">
+                    <![CDATA[
+                    AND `create_user` >= #{condition.createUserMin}
+                    ]]>
+                </if>
+                <if test="condition.createUserMax != null">
+                    <![CDATA[
+                    AND `create_user` <= #{condition.createUserMax}
+                    ]]>
+                </if>
+                <if test="condition.updateUser != null">
+                    AND `update_user` = #{condition.updateUser}
+                </if>
+                <if test="condition.updateUserList != null and condition.updateUserList.size() > 0">
+                    AND `update_user` in
+                    <foreach collection="condition.updateUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.updateUserMin != null">
+                    <![CDATA[
+                    AND `update_user` >= #{condition.updateUserMin}
+                    ]]>
+                </if>
+                <if test="condition.updateUserMax != null">
+                    <![CDATA[
+                    AND `update_user` <= #{condition.updateUserMax}
+                    ]]>
+                </if>
+                <if test="condition.createTimeList != null and condition.createTimeList.size() > 0">
+                    AND `create_time` in
+                    <foreach collection="condition.createTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.createTimeMin != null">
+                    <![CDATA[
+                    AND `create_time` >= #{condition.createTimeMin}
+                    ]]>
+                </if>
+                <if test="condition.createTimeMax != null">
+                    <![CDATA[
+                    AND `create_time` <= #{condition.createTimeMax}
+                    ]]>
+                </if>
+                <if test="condition.updateTimeList != null and condition.updateTimeList.size() > 0">
+                    AND `update_time` in
+                    <foreach collection="condition.updateTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+                </if>
+                <if test="condition.updateTimeMin != null">
+                    <![CDATA[
+                    AND `update_time` >= #{condition.updateTimeMin}
+                    ]]>
+                </if>
+                <if test="condition.updateTimeMax != null">
+                    <![CDATA[
+                    AND `update_time` <= #{condition.updateTimeMax}
+                    ]]>
+                </if>
+        </trim>
+    </sql>
+
+    <sql id="where">
+        <if test="condition != null">
+            <where>
+                <include refid="selectCondition"/>
+            </where>
+        </if>
+    </sql>
+    <sql id="listWhere">
+        <if test="conditionList != null and conditionList.size() > 0">
+            <where>
+                <foreach collection="conditionList" item="condition" open="(" close=")" separator=" OR ">
+                    (<include refid="selectCondition"/>)
+                </foreach>
+            </where>
+        </if>
+    </sql>
+    <sql id="orderBy">
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.idSort != null">
+                    <choose>
+                        <when test="order.idSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `id` ASC,
+                        </when>
+                        <otherwise>
+                            `id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.optionCodeSort != null">
+                    <choose>
+                        <when test="order.optionCodeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `option_code` ASC,
+                        </when>
+                        <otherwise>
+                            `option_code` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.valueSort != null">
+                    <choose>
+                        <when test="order.valueSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `value` ASC,
+                        </when>
+                        <otherwise>
+                            `value` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.textSort != null">
+                    <choose>
+                        <when test="order.textSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `text` ASC,
+                        </when>
+                        <otherwise>
+                            `text` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.sortSort != null">
+                    <choose>
+                        <when test="order.sortSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `sort` ASC,
+                        </when>
+                        <otherwise>
+                            `sort` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.parentIdSort != null">
+                    <choose>
+                        <when test="order.parentIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `parent_id` ASC,
+                        </when>
+                        <otherwise>
+                            `parent_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.typeSort != null">
+                    <choose>
+                        <when test="order.typeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `type` ASC,
+                        </when>
+                        <otherwise>
+                            `type` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.builtInSort != null">
+                    <choose>
+                        <when test="order.builtInSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `built_in` ASC,
+                        </when>
+                        <otherwise>
+                            `built_in` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.deletedSort != null">
+                    <choose>
+                        <when test="order.deletedSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `deleted` ASC,
+                        </when>
+                        <otherwise>
+                            `deleted` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createUserSort != null">
+                    <choose>
+                        <when test="order.createUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `create_user` ASC,
+                        </when>
+                        <otherwise>
+                            `create_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateUserSort != null">
+                    <choose>
+                        <when test="order.updateUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `update_user` ASC,
+                        </when>
+                        <otherwise>
+                            `update_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createTimeSort != null">
+                    <choose>
+                        <when test="order.createTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `create_time` ASC,
+                        </when>
+                        <otherwise>
+                            `create_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateTimeSort != null">
+                    <choose>
+                        <when test="order.updateTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            `update_time` ASC,
+                        </when>
+                        <otherwise>
+                            `update_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </sql>
+    <sql id="selectColumnList">
+        `id`,
+        `option_code`,
+        `value`,
+        `text`,
+        `sort`,
+        `parent_id`,
+        `type`,
+        `built_in`,
+        `ext`,
+        `deleted`,
+        `create_user`,
+        `update_user`,
+        `create_time`,
+        `update_time`
+    </sql>
+    <sql id="updateColumnSet">
+        <set>
+            <if test="entity.optionCode != null">
+                `option_code` = #{entity.optionCode},
+            </if>
+            <if test="entity.value != null">
+                `value` = #{entity.value},
+            </if>
+            <if test="entity.text != null">
+                `text` = #{entity.text},
+            </if>
+            <if test="entity.sort != null">
+                `sort` = #{entity.sort},
+            </if>
+            <if test="entity.parentId != null">
+                `parent_id` = #{entity.parentId},
+            </if>
+            <if test="entity.type != null">
+                `type` = #{entity.type},
+            </if>
+            <if test="entity.builtIn != null">
+                `built_in` = #{entity.builtIn},
+            </if>
+            <if test="entity.ext != null">
+                `ext` = #{entity.ext},
+            </if>
+            <if test="entity.deleted != null">
+                `deleted` = #{entity.deleted},
+            </if>
+            <if test="entity.createUser != null">
+                `create_user` = #{entity.createUser},
+            </if>
+            <if test="entity.updateUser != null">
+                `update_user` = #{entity.updateUser},
+            </if>
+            <if test="entity.createTime != null">
+                `create_time` = #{entity.createTime},
+            </if>
+            <if test="entity.updateTime != null">
+                `update_time` = #{entity.updateTime}
+            </if>
+        </set>
+    </sql>
+
+    <insert id="insert" parameterMap="BaseParameterMap" useGeneratedKeys="true" keyProperty="entity.id">
+        insert into <include refid="tableName"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entity.id != null">`id`,</if>
+            <if test="entity.optionCode != null">`option_code`,</if>
+            <if test="entity.value != null">`value`,</if>
+            <if test="entity.text != null">`text`,</if>
+            <if test="entity.sort != null">`sort`,</if>
+            <if test="entity.parentId != null">`parent_id`,</if>
+            <if test="entity.type != null">`type`,</if>
+            <if test="entity.builtIn != null">`built_in`,</if>
+            <if test="entity.ext != null">`ext`,</if>
+            <if test="entity.deleted != null">`deleted`,</if>
+            <if test="entity.createUser != null">`create_user`,</if>
+            <if test="entity.updateUser != null">`update_user`,</if>
+            <if test="entity.createTime != null">`create_time`,</if>
+            <if test="entity.updateTime != null">`update_time`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entity.id != null">#{entity.id},</if>
+            <if test="entity.optionCode != null">#{entity.optionCode},</if>
+            <if test="entity.value != null">#{entity.value},</if>
+            <if test="entity.text != null">#{entity.text},</if>
+            <if test="entity.sort != null">#{entity.sort},</if>
+            <if test="entity.parentId != null">#{entity.parentId},</if>
+            <if test="entity.type != null">#{entity.type},</if>
+            <if test="entity.builtIn != null">#{entity.builtIn},</if>
+            <if test="entity.ext != null">#{entity.ext},</if>
+            <if test="entity.deleted != null">#{entity.deleted},</if>
+            <if test="entity.createUser != null">#{entity.createUser},</if>
+            <if test="entity.updateUser != null">#{entity.updateUser},</if>
+            <if test="entity.createTime != null">#{entity.createTime},</if>
+            <if test="entity.updateTime != null">#{entity.updateTime},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertList" parameterMap="BaseParameterMap">
+        <foreach collection="list" item="item" separator=";">
+            insert into <include refid="tableName"/>
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="item.id != null">`id`,</if>
+                <if test="item.optionCode != null">`option_code`,</if>
+                <if test="item.value != null">`value`,</if>
+                <if test="item.text != null">`text`,</if>
+                <if test="item.sort != null">`sort`,</if>
+                <if test="item.parentId != null">`parent_id`,</if>
+                <if test="item.type != null">`type`,</if>
+                <if test="item.builtIn != null">`built_in`,</if>
+                <if test="item.ext != null">`ext`,</if>
+                <if test="item.deleted != null">`deleted`,</if>
+                <if test="item.createUser != null">`create_user`,</if>
+                <if test="item.updateUser != null">`update_user`,</if>
+                <if test="item.createTime != null">`create_time`,</if>
+                <if test="item.updateTime != null">`update_time`,</if>
+            </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="item.id != null">#{item.id},</if>
+                <if test="item.optionCode != null">#{item.optionCode},</if>
+                <if test="item.value != null">#{item.value},</if>
+                <if test="item.text != null">#{item.text},</if>
+                <if test="item.sort != null">#{item.sort},</if>
+                <if test="item.parentId != null">#{item.parentId},</if>
+                <if test="item.type != null">#{item.type},</if>
+                <if test="item.builtIn != null">#{item.builtIn},</if>
+                <if test="item.ext != null">#{item.ext},</if>
+                <if test="item.deleted != null">#{item.deleted},</if>
+                <if test="item.createUser != null">#{item.createUser},</if>
+                <if test="item.updateUser != null">#{item.updateUser},</if>
+                <if test="item.createTime != null">#{item.createTime},</if>
+                <if test="item.updateTime != null">#{item.updateTime},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+    <delete id="deleteByCondition" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </delete>
+
+    <delete id="deleteByConditionList" parameterMap="BaseConditionMap">
+        DELETE FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </delete>
+
+    <update id="updateByCondition">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="where"/>
+    </update>
+
+    <update id="updateByConditionList">
+        UPDATE <include refid="tableName"/>
+        <include refid="updateColumnSet"/>
+        <include refid="listWhere"/>
+    </update>
+
+    <select id="getByCondition" resultMap="BaseResultMap" parameterMap="BaseConditionMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="where"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="selectByConditionList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectColumnList"/>
+        FROM
+        <include refid="tableName"/>
+        <include refid="listWhere"/>
+        <include refid="orderBy"/>
+    </select>
+
+    <select id="countByCondition" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="where"/>
+    </select>
+
+    <select id="countByConditionList" parameterMap="BaseConditionMap" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM <include refid="tableName"/>
+        <include refid="listWhere"/>
+    </select>
+</mapper>

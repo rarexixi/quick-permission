@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 存放手写的sql -->
+<mapper namespace="org.xi.quick.sys.mapper.RolePermissionMapper">
+
+    <resultMap id="ExtensionResultMap" extends="BaseResultMap" type="org.xi.quick.sys.models.entity.extension.RolePermissionEntityExtension">
+    </resultMap>
+
+    <parameterMap id="ConditionExtensionMap" type="org.xi.quick.sys.models.condition.extension.RolePermissionConditionExtension"></parameterMap>
+
+    <insert id="batchInsert" parameterMap="BaseParameterMap">
+        insert into <include refid="tableName"/>(`role_id`, `permission_id`)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.roleId}, #{item.permissionId})
+        </foreach>
+    </insert>
+
+    <select id="getByPk" resultMap="ExtensionResultMap">
+        SELECT DISTINCT
+        MT.`role_id`,
+        MT.`permission_id`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+        MT.`role_id` = #{roleId}
+        AND MT.`permission_id` = #{permissionId}
+        </where>
+    </select>
+
+    <select id="getExList" resultMap="ExtensionResultMap" parameterMap="ConditionExtensionMap">
+        SELECT DISTINCT
+        MT.`role_id`,
+        MT.`permission_id`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+            <if test="condition.roleId != null">
+                AND MT.`role_id` = #{condition.roleId}
+            </if>
+            <if test="condition.roleIdList != null and condition.roleIdList.size() > 0">
+                AND MT.`role_id` in
+                <foreach collection="condition.roleIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.roleIdMin != null">
+                <![CDATA[
+                AND MT.`role_id` >= #{condition.roleIdMin}
+                ]]>
+            </if>
+            <if test="condition.roleIdMax != null">
+                <![CDATA[
+                AND MT.`role_id` <= #{condition.roleIdMax}
+                ]]>
+            </if>
+            <if test="condition.permissionId != null">
+                AND MT.`permission_id` = #{condition.permissionId}
+            </if>
+            <if test="condition.permissionIdList != null and condition.permissionIdList.size() > 0">
+                AND MT.`permission_id` in
+                <foreach collection="condition.permissionIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.permissionIdMin != null">
+                <![CDATA[
+                AND MT.`permission_id` >= #{condition.permissionIdMin}
+                ]]>
+            </if>
+            <if test="condition.permissionIdMax != null">
+                <![CDATA[
+                AND MT.`permission_id` <= #{condition.permissionIdMax}
+                ]]>
+            </if>
+        </where>
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.roleIdSort != null">
+                    <choose>
+                        <when test="order.roleIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`role_id` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`role_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.permissionIdSort != null">
+                    <choose>
+                        <when test="order.permissionIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`permission_id` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`permission_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </select>
+</mapper>

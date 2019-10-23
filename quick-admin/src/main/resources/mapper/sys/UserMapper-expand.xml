@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 存放手写的sql -->
+<mapper namespace="org.xi.quick.sys.mapper.UserMapper">
+
+    <resultMap id="ExtensionResultMap" extends="BaseResultMap" type="org.xi.quick.sys.models.entity.extension.UserEntityExtension">
+    </resultMap>
+
+    <parameterMap id="ConditionExtensionMap" type="org.xi.quick.sys.models.condition.extension.UserConditionExtension"></parameterMap>
+
+    <select id="getByPk" resultMap="ExtensionResultMap">
+        SELECT DISTINCT
+        MT.`user_id`,
+        MT.`username`,
+        MT.`password`,
+        MT.`salt`,
+        MT.`email`,
+        MT.`mobile`,
+        MT.`real_name`,
+        MT.`avatar`,
+        MT.`deleted`,
+        MT.`create_user`,
+        MT.`update_user`,
+        MT.`create_time`,
+        MT.`update_time`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+        MT.`user_id` = #{userId}
+        </where>
+    </select>
+
+    <select id="getRolesByUserId" resultType="java.lang.String" parameterType="java.lang.Integer">
+        SELECT DISTINCT
+        T.`role_code`
+        FROM
+        `sys_role` T
+        JOIN (SELECT `role_id` FROM `sys_user_role` WHERE `user_id` = #{userId}) T1 ON T1.`role_id` = T.`role_id`
+        <where>
+            T.`deleted` = 0
+        </where>
+    </select>
+
+    <select id="getExList" resultMap="ExtensionResultMap" parameterMap="ConditionExtensionMap">
+        SELECT DISTINCT
+        MT.`user_id`,
+        MT.`username`,
+        MT.`email`,
+        MT.`mobile`,
+        MT.`real_name`,
+        MT.`avatar`,
+        MT.`deleted`,
+        MT.`create_user`,
+        MT.`update_user`,
+        MT.`create_time`,
+        MT.`update_time`
+        FROM
+        <include refid="tableName"/> MT
+            <if test="condition.roleId != null">
+                join (select `user_id` from `sys_user_role` where `role_id` = #{condition.roleId}) T0 on MT.`user_id` = T0.`user_id`
+            </if>
+        <where>
+            <if test="condition.userId != null">
+                AND MT.`user_id` = #{condition.userId}
+            </if>
+            <if test="condition.userIdList != null and condition.userIdList.size() > 0">
+                AND MT.`user_id` in
+                <foreach collection="condition.userIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.userIdMin != null">
+                <![CDATA[
+                AND MT.`user_id` >= #{condition.userIdMin}
+                ]]>
+            </if>
+            <if test="condition.userIdMax != null">
+                <![CDATA[
+                AND MT.`user_id` <= #{condition.userIdMax}
+                ]]>
+            </if>
+            <if test="condition.username != null and condition.username != ''">
+                AND MT.`username` = #{condition.username}
+            </if>
+            <if test="condition.usernameList != null and condition.usernameList.size() > 0">
+                AND MT.`username` in
+                <foreach collection="condition.usernameList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.usernameIsEmpty != null and condition.usernameIsEmpty == true">
+                AND MT.`username` = ''
+            </if>
+            <if test="condition.usernameStartWith != null and condition.usernameStartWith != ''">
+                AND MT.`username` LIKE concat(#{condition.usernameStartWith}, '%')
+            </if>
+            <if test="condition.usernameContains != null and condition.usernameContains != ''">
+                AND MT.`username` LIKE concat('%', #{condition.usernameContains}, '%')
+            </if>
+            <if test="condition.password != null and condition.password != ''">
+                AND MT.`password` = #{condition.password}
+            </if>
+            <if test="condition.passwordList != null and condition.passwordList.size() > 0">
+                AND MT.`password` in
+                <foreach collection="condition.passwordList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.passwordIsEmpty != null and condition.passwordIsEmpty == true">
+                AND MT.`password` = ''
+            </if>
+            <if test="condition.passwordStartWith != null and condition.passwordStartWith != ''">
+                AND MT.`password` LIKE concat(#{condition.passwordStartWith}, '%')
+            </if>
+            <if test="condition.passwordContains != null and condition.passwordContains != ''">
+                AND MT.`password` LIKE concat('%', #{condition.passwordContains}, '%')
+            </if>
+            <if test="condition.salt != null and condition.salt != ''">
+                AND MT.`salt` = #{condition.salt}
+            </if>
+            <if test="condition.saltList != null and condition.saltList.size() > 0">
+                AND MT.`salt` in
+                <foreach collection="condition.saltList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.saltIsEmpty != null and condition.saltIsEmpty == true">
+                AND MT.`salt` = ''
+            </if>
+            <if test="condition.saltStartWith != null and condition.saltStartWith != ''">
+                AND MT.`salt` LIKE concat(#{condition.saltStartWith}, '%')
+            </if>
+            <if test="condition.saltContains != null and condition.saltContains != ''">
+                AND MT.`salt` LIKE concat('%', #{condition.saltContains}, '%')
+            </if>
+            <if test="condition.email != null and condition.email != ''">
+                AND MT.`email` = #{condition.email}
+            </if>
+            <if test="condition.emailList != null and condition.emailList.size() > 0">
+                AND MT.`email` in
+                <foreach collection="condition.emailList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.emailIsEmpty != null and condition.emailIsEmpty == true">
+                AND MT.`email` = ''
+            </if>
+            <if test="condition.emailStartWith != null and condition.emailStartWith != ''">
+                AND MT.`email` LIKE concat(#{condition.emailStartWith}, '%')
+            </if>
+            <if test="condition.emailContains != null and condition.emailContains != ''">
+                AND MT.`email` LIKE concat('%', #{condition.emailContains}, '%')
+            </if>
+            <if test="condition.mobile != null and condition.mobile != ''">
+                AND MT.`mobile` = #{condition.mobile}
+            </if>
+            <if test="condition.mobileList != null and condition.mobileList.size() > 0">
+                AND MT.`mobile` in
+                <foreach collection="condition.mobileList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.mobileIsEmpty != null and condition.mobileIsEmpty == true">
+                AND MT.`mobile` = ''
+            </if>
+            <if test="condition.mobileStartWith != null and condition.mobileStartWith != ''">
+                AND MT.`mobile` LIKE concat(#{condition.mobileStartWith}, '%')
+            </if>
+            <if test="condition.mobileContains != null and condition.mobileContains != ''">
+                AND MT.`mobile` LIKE concat('%', #{condition.mobileContains}, '%')
+            </if>
+            <if test="condition.realName != null and condition.realName != ''">
+                AND MT.`real_name` = #{condition.realName}
+            </if>
+            <if test="condition.realNameList != null and condition.realNameList.size() > 0">
+                AND MT.`real_name` in
+                <foreach collection="condition.realNameList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.realNameIsEmpty != null and condition.realNameIsEmpty == true">
+                AND MT.`real_name` = ''
+            </if>
+            <if test="condition.realNameStartWith != null and condition.realNameStartWith != ''">
+                AND MT.`real_name` LIKE concat(#{condition.realNameStartWith}, '%')
+            </if>
+            <if test="condition.realNameContains != null and condition.realNameContains != ''">
+                AND MT.`real_name` LIKE concat('%', #{condition.realNameContains}, '%')
+            </if>
+            <if test="condition.avatar != null and condition.avatar != ''">
+                AND MT.`avatar` = #{condition.avatar}
+            </if>
+            <if test="condition.avatarList != null and condition.avatarList.size() > 0">
+                AND MT.`avatar` in
+                <foreach collection="condition.avatarList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.avatarIsEmpty != null and condition.avatarIsEmpty == true">
+                AND MT.`avatar` = ''
+            </if>
+            <if test="condition.avatarStartWith != null and condition.avatarStartWith != ''">
+                AND MT.`avatar` LIKE concat(#{condition.avatarStartWith}, '%')
+            </if>
+            <if test="condition.avatarContains != null and condition.avatarContains != ''">
+                AND MT.`avatar` LIKE concat('%', #{condition.avatarContains}, '%')
+            </if>
+            <if test="condition.deleted != null">
+                AND MT.`deleted` = #{condition.deleted}
+            </if>
+            <if test="condition.createUser != null">
+                AND MT.`create_user` = #{condition.createUser}
+            </if>
+            <if test="condition.createUserList != null and condition.createUserList.size() > 0">
+                AND MT.`create_user` in
+                <foreach collection="condition.createUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.createUserMin != null">
+                <![CDATA[
+                AND MT.`create_user` >= #{condition.createUserMin}
+                ]]>
+            </if>
+            <if test="condition.createUserMax != null">
+                <![CDATA[
+                AND MT.`create_user` <= #{condition.createUserMax}
+                ]]>
+            </if>
+            <if test="condition.updateUser != null">
+                AND MT.`update_user` = #{condition.updateUser}
+            </if>
+            <if test="condition.updateUserList != null and condition.updateUserList.size() > 0">
+                AND MT.`update_user` in
+                <foreach collection="condition.updateUserList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.updateUserMin != null">
+                <![CDATA[
+                AND MT.`update_user` >= #{condition.updateUserMin}
+                ]]>
+            </if>
+            <if test="condition.updateUserMax != null">
+                <![CDATA[
+                AND MT.`update_user` <= #{condition.updateUserMax}
+                ]]>
+            </if>
+            <if test="condition.createTimeList != null and condition.createTimeList.size() > 0">
+                AND MT.`create_time` in
+                <foreach collection="condition.createTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.createTimeMin != null">
+                <![CDATA[
+                AND MT.`create_time` >= #{condition.createTimeMin}
+                ]]>
+            </if>
+            <if test="condition.createTimeMax != null">
+                <![CDATA[
+                AND MT.`create_time` <= #{condition.createTimeMax}
+                ]]>
+            </if>
+            <if test="condition.updateTimeList != null and condition.updateTimeList.size() > 0">
+                AND MT.`update_time` in
+                <foreach collection="condition.updateTimeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.updateTimeMin != null">
+                <![CDATA[
+                AND MT.`update_time` >= #{condition.updateTimeMin}
+                ]]>
+            </if>
+            <if test="condition.updateTimeMax != null">
+                <![CDATA[
+                AND MT.`update_time` <= #{condition.updateTimeMax}
+                ]]>
+            </if>
+        </where>
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.userIdSort != null">
+                    <choose>
+                        <when test="order.userIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`user_id` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`user_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.usernameSort != null">
+                    <choose>
+                        <when test="order.usernameSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`username` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`username` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.passwordSort != null">
+                    <choose>
+                        <when test="order.passwordSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`password` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`password` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.saltSort != null">
+                    <choose>
+                        <when test="order.saltSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`salt` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`salt` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.emailSort != null">
+                    <choose>
+                        <when test="order.emailSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`email` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`email` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.mobileSort != null">
+                    <choose>
+                        <when test="order.mobileSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`mobile` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`mobile` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.realNameSort != null">
+                    <choose>
+                        <when test="order.realNameSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`real_name` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`real_name` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.avatarSort != null">
+                    <choose>
+                        <when test="order.avatarSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`avatar` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`avatar` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.deletedSort != null">
+                    <choose>
+                        <when test="order.deletedSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`deleted` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`deleted` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createUserSort != null">
+                    <choose>
+                        <when test="order.createUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`create_user` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`create_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateUserSort != null">
+                    <choose>
+                        <when test="order.updateUserSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`update_user` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`update_user` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.createTimeSort != null">
+                    <choose>
+                        <when test="order.createTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`create_time` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`create_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.updateTimeSort != null">
+                    <choose>
+                        <when test="order.updateTimeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`update_time` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`update_time` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 存放手写的sql -->
+<mapper namespace="org.xi.quick.sys.mapper.UserTokenMapper">
+
+    <resultMap id="ExtensionResultMap" extends="BaseResultMap" type="org.xi.quick.sys.models.entity.extension.UserTokenEntityExtension">
+    </resultMap>
+
+    <parameterMap id="ConditionExtensionMap" type="org.xi.quick.sys.models.condition.extension.UserTokenConditionExtension"></parameterMap>
+
+    <select id="getByPk" resultMap="ExtensionResultMap">
+        SELECT DISTINCT
+        MT.`user_id`,
+        MT.`token`,
+        MT.`expire_at`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+        MT.`user_id` = #{userId}
+        </where>
+    </select>
+
+    <select id="getExList" resultMap="ExtensionResultMap" parameterMap="ConditionExtensionMap">
+        SELECT DISTINCT
+        MT.`user_id`,
+        MT.`token`,
+        MT.`expire_at`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+            <if test="condition.userId != null">
+                AND MT.`user_id` = #{condition.userId}
+            </if>
+            <if test="condition.userIdList != null and condition.userIdList.size() > 0">
+                AND MT.`user_id` in
+                <foreach collection="condition.userIdList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.userIdMin != null">
+                <![CDATA[
+                AND MT.`user_id` >= #{condition.userIdMin}
+                ]]>
+            </if>
+            <if test="condition.userIdMax != null">
+                <![CDATA[
+                AND MT.`user_id` <= #{condition.userIdMax}
+                ]]>
+            </if>
+            <if test="condition.token != null and condition.token != ''">
+                AND MT.`token` = #{condition.token}
+            </if>
+            <if test="condition.tokenList != null and condition.tokenList.size() > 0">
+                AND MT.`token` in
+                <foreach collection="condition.tokenList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.tokenIsEmpty != null and condition.tokenIsEmpty == true">
+                AND MT.`token` = ''
+            </if>
+            <if test="condition.tokenStartWith != null and condition.tokenStartWith != ''">
+                AND MT.`token` LIKE concat(#{condition.tokenStartWith}, '%')
+            </if>
+            <if test="condition.tokenContains != null and condition.tokenContains != ''">
+                AND MT.`token` LIKE concat('%', #{condition.tokenContains}, '%')
+            </if>
+            <if test="condition.expireAtList != null and condition.expireAtList.size() > 0">
+                AND MT.`expire_at` in
+                <foreach collection="condition.expireAtList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.expireAtMin != null">
+                <![CDATA[
+                AND MT.`expire_at` >= #{condition.expireAtMin}
+                ]]>
+            </if>
+            <if test="condition.expireAtMax != null">
+                <![CDATA[
+                AND MT.`expire_at` <= #{condition.expireAtMax}
+                ]]>
+            </if>
+        </where>
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.userIdSort != null">
+                    <choose>
+                        <when test="order.userIdSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`user_id` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`user_id` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.tokenSort != null">
+                    <choose>
+                        <when test="order.tokenSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`token` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`token` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.expireAtSort != null">
+                    <choose>
+                        <when test="order.expireAtSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`expire_at` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`expire_at` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </select>
+
+    <insert id="replaceInto" parameterMap="BaseParameterMap">
+        replace into <include refid="tableName"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entity.userId != null">`user_id`,</if>
+            <if test="entity.token != null">`token`,</if>
+            <if test="entity.expireAt != null">`expire_at`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entity.userId != null">#{entity.userId},</if>
+            <if test="entity.token != null">#{entity.token},</if>
+            <if test="entity.expireAt != null">#{entity.expireAt},</if>
+        </trim>
+    </insert>
+</mapper>

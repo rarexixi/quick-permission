@@ -1,0 +1,150 @@
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: org.xi.quick.codegenerator.mapper
+  configuration:
+    cache-enabled: false
+    lazy-loading-enabled: false
+    multiple-result-sets-enabled: true
+    use-column-label: true
+    use-generated-keys: false
+    default-executor-type: simple
+    default-statement-timeout: 25000
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    call-setters-on-nulls: true
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/quick_permission?allowMultiQueries=true&useSSL=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+generator:
+  database-name: quick_permission
+  encoding: UTF-8
+  table-name-match-regex: '(?<=sys_).*'
+  paths:
+    template: ./templates/                   # 模版路径
+    out: ../../                          # 输出路径
+  files:
+    ignore: include/
+    aggregate: html/index.html
+    copy: static/css/, static/fonts/, static/js/common.js, .gitignore
+
+  columns:
+    base:
+      column-name-set: deleted, create_user, update_user, create_time, update_time
+      table-name: sys_user
+    not-required:
+      - column-name-set: create_user, update_user, create_time, update_time
+    content:
+      - column-name-set: ext, remark
+      - column-name-set: value
+        table-name: sys_config
+    valid-status:
+      - column-name-set: deleted
+        status:
+          valid: 0
+          invalid: 1
+    fk-select:
+      - column-name-set: role_id
+        table-name: sys_user
+        fk:
+          foreign-table-name: sys_role
+          value-column-name: role_id
+          text-column-name: role_name
+      - column-name-set: type
+        table-name: sys_permission
+        fk:
+          foreign-table-name: sys_option
+          value-column-name: value
+          text-column-name: text
+          conditions:
+            - field: source
+              value: sys_permission_type
+            - field: deleted
+              value: 0
+      - column-name-set: type
+        table-name: sys_menu
+        fk:
+          foreign-table-name: sys_option
+          value-column-name: value
+          text-column-name: text
+          conditions:
+            - field: source
+              value: sys_menu_type
+            - field: deleted
+              value: 0
+      - column-name-set: type
+        table-name: sys_option
+        fk:
+          foreign-table-name: sys_option
+          value-column-name: value
+          text-column-name: text
+          conditions:
+            - field: source
+              value: sys_option_type
+            - field: deleted
+              value: 0
+      - column-name-set: build_in
+        fk:
+          foreign-table-name: sys_option
+          value-column-name: value
+          text-column-name: text
+          conditions:
+            - field: source
+              value: boolean
+            - field: deleted
+              value: 0
+      - column-name-set: status
+        table-name: sys_user
+        fk:
+          foreign-table-name: sys_option
+          value-column-name: value
+          text-column-name: text
+          conditions:
+            - field: source
+              value: sys_user_status
+            - field: deleted
+              value: 0
+
+  # 公共自定义属性
+  common-properties:
+    projectName: quick-permission
+    projectShortName: 权限管理系统
+    projectGroup: org.xi.quick
+    projectVersion: 0.1.0.0-SNAPSHOT
+
+    basePackage: org.xi.quick
+    baseCommonPackage: org.xi.quick.common
+    module: sys
+
+    adminModuleName: quick-admin
+    adminModuleApplicatioName: QuickAdminApplication
+    adminServicePort: 8820
+
+    baseApiPath: http://localhost:8820
+
+    author: 郗世豪（rarexixi@sina.com）
+    javaSrc: src/main/java
+    javaTestSrc: src/test/java
+    resourcesSrc: src/main/resources
+
+  # 获取数据映射关系
+  data-type-map:
+    tinyint: Integer
+    smallint: Integer
+    int: Integer
+    bigint: Long
+    float: Float
+    double: Double
+    decimal: BigDecimal
+    numeric: BigDecimal
+    bit: Boolean
+    character: Character
+    varchar: String
+    char: String
+    text: String
+    date: Date
+    datetime: Date
+    timestamp: Date

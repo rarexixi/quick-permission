@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 存放手写的sql -->
+<mapper namespace="org.xi.quick.sys.mapper.CaptchaMapper">
+
+    <resultMap id="ExtensionResultMap" extends="BaseResultMap" type="org.xi.quick.sys.models.entity.extension.CaptchaEntityExtension">
+    </resultMap>
+
+    <parameterMap id="ConditionExtensionMap" type="org.xi.quick.sys.models.condition.extension.CaptchaConditionExtension"></parameterMap>
+
+    <select id="getByPk" resultMap="ExtensionResultMap">
+        SELECT DISTINCT
+        MT.`uuid`,
+        MT.`code`,
+        MT.`expire_at`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+        MT.`uuid` = #{uuid}
+        </where>
+    </select>
+
+    <select id="getExList" resultMap="ExtensionResultMap" parameterMap="ConditionExtensionMap">
+        SELECT DISTINCT
+        MT.`uuid`,
+        MT.`code`,
+        MT.`expire_at`
+        FROM
+        <include refid="tableName"/> MT
+        <where>
+            <if test="condition.uuid != null and condition.uuid != ''">
+                AND MT.`uuid` = #{condition.uuid}
+            </if>
+            <if test="condition.uuidList != null and condition.uuidList.size() > 0">
+                AND MT.`uuid` in
+                <foreach collection="condition.uuidList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.uuidIsEmpty != null and condition.uuidIsEmpty == true">
+                AND MT.`uuid` = ''
+            </if>
+            <if test="condition.uuidStartWith != null and condition.uuidStartWith != ''">
+                AND MT.`uuid` LIKE concat(#{condition.uuidStartWith}, '%')
+            </if>
+            <if test="condition.uuidContains != null and condition.uuidContains != ''">
+                AND MT.`uuid` LIKE concat('%', #{condition.uuidContains}, '%')
+            </if>
+            <if test="condition.code != null and condition.code != ''">
+                AND MT.`code` = #{condition.code}
+            </if>
+            <if test="condition.codeList != null and condition.codeList.size() > 0">
+                AND MT.`code` in
+                <foreach collection="condition.codeList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.codeIsEmpty != null and condition.codeIsEmpty == true">
+                AND MT.`code` = ''
+            </if>
+            <if test="condition.codeStartWith != null and condition.codeStartWith != ''">
+                AND MT.`code` LIKE concat(#{condition.codeStartWith}, '%')
+            </if>
+            <if test="condition.codeContains != null and condition.codeContains != ''">
+                AND MT.`code` LIKE concat('%', #{condition.codeContains}, '%')
+            </if>
+            <if test="condition.expireAtList != null and condition.expireAtList.size() > 0">
+                AND MT.`expire_at` in
+                <foreach collection="condition.expireAtList" item="it" open="(" close=")" separator=",">#{it}</foreach>
+            </if>
+            <if test="condition.expireAtMin != null">
+                <![CDATA[
+                AND MT.`expire_at` >= #{condition.expireAtMin}
+                ]]>
+            </if>
+            <if test="condition.expireAtMax != null">
+                <![CDATA[
+                AND MT.`expire_at` <= #{condition.expireAtMax}
+                ]]>
+            </if>
+        </where>
+        <if test="order != null">
+            <trim suffixOverrides="ORDER BY">
+                ORDER BY
+                <trim suffixOverrides=",">
+                <if test="order.uuidSort != null">
+                    <choose>
+                        <when test="order.uuidSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`uuid` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`uuid` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.codeSort != null">
+                    <choose>
+                        <when test="order.codeSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`code` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`code` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                <if test="order.expireAtSort != null">
+                    <choose>
+                        <when test="order.expireAtSort == @org.xi.quick.common.constant.SortConstants@ASC">
+                            MT.`expire_at` ASC,
+                        </when>
+                        <otherwise>
+                            MT.`expire_at` DESC,
+                        </otherwise>
+                    </choose>
+                </if>
+                </trim>
+            </trim>
+        </if>
+    </select>
+
+    <insert id="replaceInto" parameterMap="BaseParameterMap">
+        replace into <include refid="tableName"/>
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="entity.uuid != null">`uuid`,</if>
+            <if test="entity.code != null">`code`,</if>
+            <if test="entity.expireAt != null">`expire_at`,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="entity.uuid != null">#{entity.uuid},</if>
+            <if test="entity.code != null">#{entity.code},</if>
+            <if test="entity.expireAt != null">#{entity.expireAt},</if>
+        </trim>
+    </insert>
+</mapper>
