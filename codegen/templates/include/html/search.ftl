@@ -85,7 +85,7 @@
                 <el-form-item>
                     <el-button @click="search" type="primary" icon="el-icon-search">搜索</el-button>
                     <el-button @click="resetSearch" type="warning" icon="el-icon-refresh">重置</el-button>
-                    <el-button @click="exportExcel" v-if="permissions['${module}:${targetTableName}:export']" type="success" icon="el-icon-download">导出</el-button>
+                    <el-button @click="exportExcel" v-if="permissions['${module}:${tablePath}:export']" type="success" icon="el-icon-download">导出</el-button>
                 </el-form-item>
             </el-col>
         </el-row>

@@ -15,7 +15,7 @@ spring:
   datasource:
     sys:
       url: jdbc:mysql://localhost:3306/quick_permission?allowMultiQueries=true&useSSL=true&serverTimezone=Asia/Shanghai
-      username: root
+      username: xi
       password: 123456
       driver-class-name: com.mysql.cj.jdbc.Driver
       time-between-eviction-runs-millis: 18800
@@ -33,7 +33,7 @@ spring:
   resources:
     # static-locations: classpath:/static/, classpath:/html/
     # 本地测试使用
-    static-locations: file:/Workspace/github.com/java/quick-permission/quick-admin/src/main/resources/static/, file:/Workspace/github.com/java/quick-permission/quick-admin/src/main/resources/html/
+    static-locations: file:/Users/xi/Projects/github.com/java/quick-permission/quick-admin/src/main/resources/static/, file:/Users/xi/Projects/github.com/java/quick-permission/quick-admin/src/main/resources/html/
 
 pagehelper:
   reasonable: true

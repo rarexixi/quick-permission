@@ -31,15 +31,15 @@
     let app = new Vue({
         el: '#app',
         data: {
-            viewPermission: '${module}:${targetTableName}:view',
+            viewPermission: '${module}:${tablePath}:view',
             permissions: {
-                '${module}:${targetTableName}:view': false,
-                '${module}:${targetTableName}:add': false,
-                '${module}:${targetTableName}:del': false,
-                '${module}:${targetTableName}:update': false,
-                '${module}:${targetTableName}:disable': false,
-                '${module}:${targetTableName}:enable': false,
-                '${module}:${targetTableName}:export': false,
+                '${module}:${tablePath}:view': false,
+                '${module}:${tablePath}:add': false,
+                '${module}:${tablePath}:del': false,
+                '${module}:${tablePath}:update': false,
+                '${module}:${tablePath}:disable': false,
+                '${module}:${tablePath}:enable': false,
+                '${module}:${tablePath}:export': false,
             },
             <#include "/include/js/data_select_list.ftl">
             <#list table.fkSelectColumns as column>

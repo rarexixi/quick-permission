@@ -23,8 +23,8 @@
         <#include "/include/html/detail.ftl">
         <div slot="footer" class="dialog-footer">
             <el-button @click="closeDialog" icon="el-icon-close" size="small">关闭</el-button>
-            <el-button @click="edit(detail)" v-if="permissions['${module}:${targetTableName}:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
-            <el-button @click="del(detail)" v-if="permissions['${module}:${targetTableName}:del']" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+            <el-button @click="edit(detail)" v-if="permissions['${module}:${tablePath}:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
+            <el-button @click="del(detail)" v-if="permissions['${module}:${tablePath}:del']" type="danger" icon="el-icon-delete" size="small">删除</el-button>
         </div>
     </el-dialog>
     <el-dialog :title="addOrEditTitle" :visible.sync="addOrEditDialogVisible">
@@ -47,15 +47,15 @@
     let app = new Vue({
         el: '#app',
         data: {
-            viewPermission: '${module}:${targetTableName}:view',
+            viewPermission: '${module}:${tablePath}:view',
             permissions: {
-                '${module}:${targetTableName}:view': false,
-                '${module}:${targetTableName}:add': false,
-                '${module}:${targetTableName}:del': false,
-                '${module}:${targetTableName}:update': false,
-                '${module}:${targetTableName}:disable': false,
-                '${module}:${targetTableName}:enable': false,
-                '${module}:${targetTableName}:export': false,
+                '${module}:${tablePath}:view': false,
+                '${module}:${tablePath}:add': false,
+                '${module}:${tablePath}:del': false,
+                '${module}:${tablePath}:update': false,
+                '${module}:${tablePath}:disable': false,
+                '${module}:${tablePath}:enable': false,
+                '${module}:${tablePath}:export': false,
             },
             <#include "/include/js/data_select_list.ftl">
             <#list table.fkSelectColumns as column>

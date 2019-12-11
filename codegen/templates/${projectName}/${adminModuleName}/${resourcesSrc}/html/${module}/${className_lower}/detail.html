@@ -21,12 +21,12 @@
         <#include "/include/html/detail.ftl">
         <div class="dialog-footer">
             <el-button @click="back" icon="el-icon-arrow-left" size="small">返回列表</el-button>
-            <el-button @click="edit"v-if="permissions['${module}:${targetTableName}:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
+            <el-button @click="edit"v-if="permissions['${module}:${tablePath}:update']" type="primary" icon="el-icon-edit" size="small">编辑</el-button>
             <#if table.validStatusColumn??>
-            <el-button @click="disable" v-if="permissions['${module}:${targetTableName}:disable'] && detail.${table.validStatusColumn.targetName?uncap_first}==${table.validStatusColumn.validStatusOption.valid}" type="warning" icon="el-icon-close" size="small">禁用</el-button>
-            <el-button @click="enable" v-else-if="permissions['${module}:${targetTableName}:enable'] && detail.${table.validStatusColumn.targetName?uncap_first}==${table.validStatusColumn.validStatusOption.invalid}" type="success" icon="el-icon-check" size="small">启用</el-button>
+            <el-button @click="disable" v-if="permissions['${module}:${tablePath}:disable'] && detail.${table.validStatusColumn.targetName?uncap_first}==${table.validStatusColumn.validStatusOption.valid}" type="warning" icon="el-icon-close" size="small">禁用</el-button>
+            <el-button @click="enable" v-else-if="permissions['${module}:${tablePath}:enable'] && detail.${table.validStatusColumn.targetName?uncap_first}==${table.validStatusColumn.validStatusOption.invalid}" type="success" icon="el-icon-check" size="small">启用</el-button>
             </#if>
-            <el-button @click="del"v-if="permissions['${module}:${targetTableName}:del']" type="danger" icon="el-icon-delete" size="small">删除</el-button>
+            <el-button @click="del"v-if="permissions['${module}:${tablePath}:del']" type="danger" icon="el-icon-delete" size="small">删除</el-button>
         </div>
     </div>
 </div>
@@ -42,13 +42,13 @@
     let app = new Vue({
         el: '#app',
         data: {
-            viewPermission: '${module}:${targetTableName}:view',
+            viewPermission: '${module}:${tablePath}:view',
             permissions: {
-                '${module}:${targetTableName}:view': false,
-                '${module}:${targetTableName}:del': false,
-                '${module}:${targetTableName}:update': false,
-                '${module}:${targetTableName}:disable': false,
-                '${module}:${targetTableName}:enable': false,
+                '${module}:${tablePath}:view': false,
+                '${module}:${tablePath}:del': false,
+                '${module}:${tablePath}:update': false,
+                '${module}:${tablePath}:disable': false,
+                '${module}:${tablePath}:enable': false,
             },
             <#include "/include/js/data_select_list.ftl">
             pkParams: {

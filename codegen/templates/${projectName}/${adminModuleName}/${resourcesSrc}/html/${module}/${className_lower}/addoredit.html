@@ -38,8 +38,8 @@
         el: '#app',
         data: {
             permissions: {
-                '${module}:${targetTableName}:add': false,
-                '${module}:${targetTableName}:update': false,
+                '${module}:${tablePath}:add': false,
+                '${module}:${tablePath}:update': false,
             },
             <#include "/include/js/data_select_list.ftl">
             <#list table.fkSelectColumns as column>
@@ -79,11 +79,11 @@
                 </#list>
                 if (<#list pks as column><#include "/include/column/properties.ftl"><#if (column_index > 0)> && </#if>self.pkParams.${fieldName} == ''</#list>) {
                     self.addOrEditTitle = '添加${tableComment}';
-                    self.validatePermissions(self.permissions, '${module}:${targetTableName}:add', () => {
+                    self.validatePermissions(self.permissions, '${module}:${tablePath}:add', () => {
                     });
                 } else {
                     self.addOrEditTitle = self.copy ? '添加${tableComment}' : '更新${tableComment}';
-                    self.validatePermissions(self.permissions, '${module}:${targetTableName}:update', () => {
+                    self.validatePermissions(self.permissions, '${module}:${tablePath}:update', () => {
                         self.get();
                     });
                 }
