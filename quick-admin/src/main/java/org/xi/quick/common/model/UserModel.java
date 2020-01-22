@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -40,4 +42,14 @@ public class UserModel {
      * 头像
      */
     private String avatar;
+
+    /**
+     * 用户角色
+     */
+    private Set<String> roles;
+
+    /**
+     * 用户权限
+     */
+    private Set<String> permissions;
 }

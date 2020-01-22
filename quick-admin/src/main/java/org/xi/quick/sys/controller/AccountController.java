@@ -25,10 +25,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotBlank;
 import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 账号管理
@@ -76,25 +73,46 @@ public class AccountController {
         return new ResponseVo(token);
     }
 
+    @GetMapping("get-all-permissions")
+    public ResponseVo<Set<String>> getAllPermission() {
+        UserModel user = getCurrentUser();
+        Set<String> roles = userService.getUserRoles(user.getUserId());
+        for (String role : roles) {
+            // 如果是超级用户，赋予所有权限
+            if (webProperties.getRootUserRoles().contains(role)) {
+                Set<String> permissionSet = new HashSet<>();
+                permissionSet.add("*");
+                return new ResponseVo<>(permissionSet);
+            }
+        }
+
+        Set<String> permissionSet = userService.getUserPermissions(user.getUserId());
+        return new ResponseVo<>(permissionSet);
+    }
+
     @PostMapping("validate-permissions")
     public ResponseVo<Map<String, Boolean>> validatePermission(@RequestBody List<String> permissions) {
         UserModel user = getCurrentUser();
         Map<String, Boolean> result = new HashMap<>();
 
-        Set<String> roles = userService.getUserRoles(user.getUserId());
-        for (String role : roles) {
-            // 如果是超级用户，赋予所有权限
-            if (webProperties.getRootUserRoles().contains(role)) {
-                for (String permission : permissions) {
-                    result.put(permission, true);
+        Set<String> roles = user.getRoles();
+        if (roles != null) {
+            for (String role : roles) {
+                // 如果是超级用户，赋予所有权限
+                if (webProperties.getRootUserRoles().contains(role)) {
+                    for (String permission : permissions) {
+                        result.put(permission, true);
+                    }
+                    return new ResponseVo<>(result);
                 }
-                return new ResponseVo<>(result);
             }
         }
 
-        Set<String> permissionSet = userService.getUserPermissions(user.getUserId());
-        for (String permission : permissions) {
-            result.put(permission, permissionSet.contains(permission));
+        Set<String> permissionSet = user.getPermissions();
+        if (permissionSet != null) {
+            for (String permission : permissions) {
+                result.put(permission, permissionSet.contains(permission));
+            }
         }
         return new ResponseVo<>(result);
     }

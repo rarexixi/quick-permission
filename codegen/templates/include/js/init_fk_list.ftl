@@ -1,16 +1,16 @@
 <#list table.fkSelectColumns as column>
             <#include "/include/column/properties.ftl">
-            get${propertyExceptKey}: function (${column.fkSelectColumn.valueName?uncap_first}) {
+            get${propertyExceptKey}(${column.fkSelectColumn.valueName?uncap_first}) {
                 return this.${fieldNameExceptKey}SelectList.find(item => item.${column.fkSelectColumn.valueName?uncap_first} == ${column.fkSelectColumn.valueName?uncap_first});
             },
-            get${propertyExceptKey}Text: function (${column.fkSelectColumn.valueName?uncap_first}) {
+            get${propertyExceptKey}Text(${column.fkSelectColumn.valueName?uncap_first}) {
                 let entity = this.get${propertyExceptKey}(${column.fkSelectColumn.valueName?uncap_first});
                 return entity ? entity.${column.fkSelectColumn.textName?uncap_first} : '';
             },
 </#list>
 <#list table.fkSelectColumns as column>
             <#include "/include/column/properties.ftl">
-            init${propertyExceptKey}SelectList: function () {
+            init${propertyExceptKey}SelectList() {
                 let self = this;
                 let url = '/${column.fkSelectColumn.foreignTargetTableName?replace("_", "-")}/list';
                 let params = {
@@ -21,7 +21,7 @@
                     },
                     order: {}
                 };
-                self.ajaxPost(url, params, '获取${columnComment}列表失败！', response => {
+                request_utils.post(url, params).then(response => {
                     self.${fieldNameExceptKey}SelectList = response.data;
                 });
             },

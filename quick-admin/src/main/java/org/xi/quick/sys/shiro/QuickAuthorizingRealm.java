@@ -39,27 +39,9 @@ public class QuickAuthorizingRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-
         UserModel user = (UserModel) principals.getPrimaryPrincipal();
-        Set<String> roles = userService.getUserRoles(user.getUserId());
-
-        //用户权限列表
-        Set<String> permissions = new HashSet<>(1);
-        boolean isRoot = false;
-        for (String role : roles) {
-            // 如果是超级用户，赋予所有权限
-            if (webProperties.getRootUserRoles().contains(role)) {
-                permissions.add("*");
-                isRoot = true;
-                break;
-            }
-        }
-        if (!isRoot) {
-            permissions = userService.getUserPermissions(user.getUserId());
-        }
-
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
-        info.setStringPermissions(permissions);
+        info.setStringPermissions(user.getPermissions());
         return info;
     }
 
@@ -79,7 +61,27 @@ public class QuickAuthorizingRealm extends AuthorizingRealm {
 
         //查询用户信息
         UserDetailVm u = userService.getDetail(userToken.getUserId());
-        UserModel user = new UserModel(u.getUserId(), u.getUsername(), u.getEmail(), u.getMobile(), u.getRealName(), u.getAvatar());
+        Set<String> roles = null;
+        Set<String> permissions = null;
+        if (u != null) {
+            roles = userService.getUserRoles(u.getUserId());
+            //用户权限列表
+            permissions = new HashSet<>(1);
+            boolean isRoot = false;
+            for (String role : roles) {
+                // 如果是超级用户，赋予所有权限
+                if (webProperties.getRootUserRoles().contains(role)) {
+                    permissions.add("*");
+                    isRoot = true;
+                    break;
+                }
+            }
+            if (!isRoot) {
+                permissions = userService.getUserPermissions(u.getUserId());
+            }
+        }
+        UserModel user = new UserModel(u.getUserId(), u.getUsername(), u.getEmail(), u.getMobile(),
+                u.getRealName(), u.getAvatar(), roles, permissions);
         SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(user, accessToken, getName());
         return info;
     }

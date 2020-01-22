@@ -120,6 +120,7 @@ generator:
     module: sys
 
     adminModuleName: quick-admin
+    adminWebModuleName: quick-admin-ui
     adminModuleApplicatioName: QuickAdminApplication
     adminServicePort: 8820
 

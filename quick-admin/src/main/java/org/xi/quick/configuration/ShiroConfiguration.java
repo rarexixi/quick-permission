@@ -1,5 +1,8 @@
 package org.xi.quick.configuration;
 
+import org.apache.shiro.cache.ehcache.EhCacheManager;
+import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.xi.quick.configuration.properties.WebProperties;
 import org.xi.quick.sys.shiro.QuickAuthenticatingFilter;
 import org.xi.quick.sys.shiro.QuickAuthorizingRealm;
@@ -18,6 +21,21 @@ import java.util.Map;
 
 @Configuration
 public class ShiroConfiguration {
+
+    @Bean
+    public EhCacheManagerFactoryBean ehCacheManagerFactoryBean() {
+        EhCacheManagerFactoryBean cacheManager = new EhCacheManagerFactoryBean();
+        PathMatchingResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+        cacheManager.setConfigLocation(resourcePatternResolver.getResource("classpath:ehcache.xml"));
+        return cacheManager;
+    }
+
+    @Bean("ehCacheManager")
+    public EhCacheManager ehCacheManager(EhCacheManagerFactoryBean factoryBean) {
+        EhCacheManager cacheManager = new EhCacheManager();
+        cacheManager.setCacheManager(factoryBean.getObject());
+        return cacheManager;
+    }
 
     @Bean("securityManager")
     public SecurityManager securityManager(QuickAuthorizingRealm realm) {

@@ -4,18 +4,11 @@ server:
 spring:
   application:
     name: quick-admin
-  cache:
-    type: redis
-    redis:
-      time-to-live: 5m
-  redis:
-    host: localhost
-    port: 6379
 
   datasource:
     sys:
       url: jdbc:mysql://localhost:3306/quick_permission?allowMultiQueries=true&useSSL=true&serverTimezone=Asia/Shanghai
-      username: xi
+      username: root
       password: 123456
       driver-class-name: com.mysql.cj.jdbc.Driver
       time-between-eviction-runs-millis: 18800
@@ -30,6 +23,14 @@ spring:
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: true
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 256MB
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   resources:
     # static-locations: classpath:/static/, classpath:/html/
     # 本地测试使用
